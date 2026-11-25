@@ -24,7 +24,9 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         string connectionString = configuration.GetConnectionString(ConnectionStringName)
-            ?? throw new InvalidOperationException($"Missing connection string 'ConnectionStrings:{ConnectionStringName}'.");
+            ?? throw new InvalidOperationException(
+                $"Missing connection string 'ConnectionStrings:{ConnectionStringName}'. Set it in Development with " +
+                $"'dotnet user-secrets set \"ConnectionStrings:{ConnectionStringName}\" \"<connection string>\"', elsewhere with the environment variable ConnectionStrings__{ConnectionStringName}.");
 
         string timeZoneId = configuration["Clinic:TimeZone"] is { Length: > 0 } configured ? configured : DefaultTimeZoneId;
         TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);

@@ -47,6 +47,8 @@ public class DependencyInjectionTests
         var error = Assert.Throws<InvalidOperationException>(() => Build([]));
 
         Assert.Contains("ConnectionStrings:Citas", error.Message, StringComparison.Ordinal);
+        Assert.Contains("user-secrets", error.Message, StringComparison.Ordinal);
+        Assert.Contains("ConnectionStrings__Citas", error.Message, StringComparison.Ordinal);
     }
 
     [Fact]
