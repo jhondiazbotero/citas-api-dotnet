@@ -55,6 +55,7 @@ internal static class OpenApiSetup
                 new() { Name = "Patients", Description = "People who book appointments." },
                 new() { Name = "Professionals", Description = "Who sees patients, their weekly hours, agenda and free slots." },
                 new() { Name = "Appointments", Description = "Book, move, cancel and close appointments." },
+                new() { Name = "Staff users", Description = "Create the people who sign in: reception and professionals." },
             };
             return Task.CompletedTask;
         });
@@ -164,6 +165,12 @@ internal static class OpenApiSetup
         {
             ["email"] = "recepcion@demo.local",
             ["password"] = "tu-contraseña",
+        },
+        [typeof(CreateStaffUserRequest)] = () => new JsonObject
+        {
+            ["email"] = "recepcion.tarde@clinica.example",
+            ["password"] = "una-contraseña-larga",
+            ["role"] = "Reception",
         },
         [typeof(LoginResponse)] = () => new JsonObject
         {

@@ -60,6 +60,7 @@ internal static class ApiPipeline
         v1.MapPatientEndpoints();
         v1.MapProfessionalEndpoints();
         v1.MapAppointmentEndpoints();
+        v1.MapStaffUserEndpoints();
     }
 
     private static void MapDocs(this WebApplication app)

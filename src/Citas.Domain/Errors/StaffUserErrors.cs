@@ -10,6 +10,9 @@ public static class StaffUserErrors
     public static readonly Error InvalidRole =
         new("StaffUser.InvalidRole", "Role must be Admin, Reception or Professional.");
 
+    public static readonly Error RoleNotAllowed =
+        new("StaffUser.RoleNotAllowed", "Only Reception and Professional users can be created here.");
+
     public static readonly Error ProfessionalRequired =
         new("StaffUser.ProfessionalRequired", "A user with the Professional role must be linked to a professional.");
 

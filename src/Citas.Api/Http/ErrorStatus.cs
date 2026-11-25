@@ -23,6 +23,7 @@ internal static class ErrorStatus
         AppointmentErrors.InvalidCancellationReason.Code,
         StaffUserErrors.InvalidEmail.Code,
         StaffUserErrors.InvalidRole.Code,
+        StaffUserErrors.RoleNotAllowed.Code,
         StaffUserErrors.ProfessionalRequired.Code,
         StaffUserErrors.ProfessionalNotAllowed.Code,
         StaffUserErrors.InvalidPasswordHash.Code,

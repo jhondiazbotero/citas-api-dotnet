@@ -48,6 +48,9 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
         new("GET professionals/{id}/agenda", HttpMethod.Get, i => $"{V1}/professionals/{i.Professional}/agenda?from=2026-12-01&to=2026-12-07", _ => null, HttpStatusCode.OK, OwnOrFrontDesk),
         new("GET professionals/{id}/available-slots", HttpMethod.Get, i => $"{V1}/professionals/{i.Professional}/available-slots?date=2026-12-03", _ => null, HttpStatusCode.OK, Everybody),
 
+        new("POST staff-users", HttpMethod.Post, _ => $"{V1}/staff-users",
+            _ => new { email = "nueva.recepcion@tests.local", password = "Una-clave-larga-1", role = "Reception" }, HttpStatusCode.Created, AdminOnly),
+
         new("POST patients", HttpMethod.Post, _ => $"{V1}/patients",
             _ => new { fullName = "Marta Prueba", documentNumber = "7654321" }, HttpStatusCode.Created, FrontDesk),
         new("GET patients/{id}", HttpMethod.Get, i => $"{V1}/patients/{i.Patient}", _ => null, HttpStatusCode.OK, FrontDesk),
@@ -81,7 +84,7 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
     public void TheMatrixCoversEveryRouteOfTheApi()
     {
         // Keep this list and the OpenAPI document in step: a new endpoint must get a row in the matrix.
-        Assert.Equal(15, Cases.Length);
+        Assert.Equal(16, Cases.Length);
         Assert.Equal(Cases.Length, Cases.Select(c => c.Name).Distinct().Count());
     }
 

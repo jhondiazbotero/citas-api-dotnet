@@ -104,6 +104,7 @@ Todos cuelgan de `/api/v1`. La documentación interactiva está en `/docs`. «Pe
 | Método | Ruta | Quién puede usarlo |
 |---|---|---|
 | POST | `/auth/token` | Cualquiera (5 intentos por minuto por dirección) |
+| POST | `/staff-users` | Admin |
 | POST | `/patients` | Admin o Reception |
 | GET | `/patients/{id}` | Admin o Reception |
 | GET | `/professionals` | Cualquiera, sin sesión (solo `id`, `fullName` y `specialty` de los activos, por nombre) |

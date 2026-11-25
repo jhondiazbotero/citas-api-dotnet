@@ -60,6 +60,7 @@ public class DocsTests(PostgresFixture postgres) : ApiTestBase(postgres)
             "/api/v1/appointments/{id}/cancel",
             "/api/v1/appointments/{id}/complete",
             "/api/v1/appointments/{id}/no-show",
+            "/api/v1/staff-users",
         ];
         string[] actual = [.. document.GetProperty("paths").EnumerateObject().Select(p => p.Name)];
 
@@ -209,6 +210,7 @@ public class DocsSecurityTests(PostgresFixture postgres) : ApiTestBase(postgres)
         Assert.Contains("Public", access["get /api/v1/professionals"], StringComparison.Ordinal);
         Assert.EndsWith("Admin.", access["post /api/v1/professionals"], StringComparison.Ordinal);
         Assert.EndsWith("Admin or Reception.", access["post /api/v1/patients"], StringComparison.Ordinal);
+        Assert.EndsWith("Admin.", access["post /api/v1/staff-users"], StringComparison.Ordinal);
         Assert.Contains("any other professional gets 403", access["get /api/v1/professionals/{id}/agenda"], StringComparison.Ordinal);
         Assert.Contains("any other professional gets 403", access["get /api/v1/professionals/{id}"], StringComparison.Ordinal);
         Assert.Contains("Professional who owns the appointment", access["post /api/v1/appointments/{id}/complete"], StringComparison.Ordinal);

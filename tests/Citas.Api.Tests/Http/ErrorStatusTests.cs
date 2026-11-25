@@ -38,6 +38,7 @@ public class ErrorStatusTests
         ["Appointment.InvalidCancellationReason"] = 400,
         ["StaffUser.InvalidEmail"] = 400,
         ["StaffUser.InvalidRole"] = 400,
+        ["StaffUser.RoleNotAllowed"] = 400,
         ["StaffUser.ProfessionalRequired"] = 400,
         ["StaffUser.ProfessionalNotAllowed"] = 400,
         ["StaffUser.InvalidPasswordHash"] = 400,

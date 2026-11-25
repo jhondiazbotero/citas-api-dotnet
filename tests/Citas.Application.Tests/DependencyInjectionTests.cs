@@ -4,6 +4,7 @@ using Citas.Application.Auth;
 using Citas.Application.Common;
 using Citas.Application.Patients;
 using Citas.Application.Professionals;
+using Citas.Application.StaffUsers;
 using Citas.Application.Tests.Fakes;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +20,7 @@ public class DependencyInjectionTests
         nameof(ScheduleAppointmentHandler), nameof(RescheduleAppointmentHandler),
         nameof(CancelAppointmentHandler), nameof(CompleteAppointmentHandler), nameof(MarkNoShowHandler),
         nameof(GetAppointmentHandler), nameof(GetProfessionalAgendaHandler), nameof(GetAvailableSlotsHandler),
-        nameof(LoginHandler),
+        nameof(LoginHandler), nameof(CreateStaffUserHandler),
     ];
 
     private static ServiceProvider BuildProvider(FakeClinicClock? clock = null)

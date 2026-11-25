@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Citas.Application.Common;
+using Citas.Domain.Staff;
 
 namespace Citas.Api.Contracts;
 
@@ -44,3 +45,10 @@ public sealed record CancelAppointmentRequest(
 public sealed record LoginRequest(
     [property: Description("Email of the staff user. Case does not matter.")] string Email,
     [property: Description("Password.")] string Password);
+
+[Description("Data to create a staff user. Administrators are not created here.")]
+public sealed record CreateStaffUserRequest(
+    [property: Description("Email of the new user, up to 254 characters. It must be new: a repeated email is rejected with 409.")] string Email,
+    [property: Description("Password, 12 to 256 characters.")] string Password,
+    [property: Description("Reception or Professional.")] StaffRole Role,
+    [property: Description("Required for a Professional (an existing, active professional) and not allowed for Reception.")] Guid? ProfessionalId = null);
