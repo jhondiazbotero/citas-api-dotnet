@@ -1,5 +1,6 @@
 using Citas.Application.Abstractions;
 using Citas.Application.Appointments;
+using Citas.Application.Auth;
 using Citas.Application.Common;
 using Citas.Application.Patients;
 using Citas.Application.Professionals;
@@ -18,6 +19,7 @@ public class DependencyInjectionTests
         nameof(ScheduleAppointmentHandler), nameof(RescheduleAppointmentHandler),
         nameof(CancelAppointmentHandler), nameof(CompleteAppointmentHandler), nameof(MarkNoShowHandler),
         nameof(GetAppointmentHandler), nameof(GetProfessionalAgendaHandler), nameof(GetAvailableSlotsHandler),
+        nameof(LoginHandler),
     ];
 
     private static ServiceProvider BuildProvider(FakeClinicClock? clock = null)
@@ -28,6 +30,9 @@ public class DependencyInjectionTests
         services.AddSingleton<IPatientRepository, FakePatientRepository>();
         services.AddSingleton<IAppointmentRepository, FakeAppointmentRepository>();
         services.AddSingleton<IUnitOfWork, FakeUnitOfWork>();
+        services.AddSingleton<IStaffUserRepository, FakeStaffUserRepository>();
+        services.AddSingleton<IPasswordHasher, FakePasswordHasher>();
+        services.AddSingleton<ITokenIssuer, FakeTokenIssuer>();
         services.AddApplication();
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
     }
