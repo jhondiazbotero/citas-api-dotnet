@@ -26,6 +26,16 @@ Un consultorio tiene profesionales con horarios semanales y pacientes que piden 
 - Errores con ProblemDetails (RFC 9457) y un campo `code` estable que el cliente puede usar. Ver [`ErrorStatus`](src/Citas.Api/Http/ErrorStatus.cs).
 - CI con pruebas y cobertura. Ver [`ci.yml`](.github/workflows/ci.yml).
 
+## Vista previa
+
+La documentación interactiva queda en `/docs`. Ahí se ven los endpoints, quién puede usar cada uno y se pueden probar con el token.
+
+![Portada de la documentación interactiva con el panel de autenticación Bearer](docs/images/docs-portada.png)
+
+![Consulta de horarios libres de una profesional con la respuesta real de la API](docs/images/horarios-libres.png)
+
+![Endpoint para marcar una cita como atendida, con el rol que exige y sus respuestas 401 y 403](docs/images/permisos-por-rol.png)
+
 ## Arquitectura
 
 Las dependencias apuntan hacia adentro. El dominio no conoce a nadie, y `Citas.Api` es el único proyecto que ve a los otros tres para armarlos.
@@ -149,7 +159,7 @@ En Development la API aplica las migraciones y carga los datos de demo al arranc
 
 ### Ejemplo con curl
 
-Pide el token (cambia la contraseña por la de `DEMO_USERS_PASSWORD`). La respuesta trae `accessToken`, `expiresAt` y `role`:
+Pide el token (cambia la contraseña por la de `DEMO_USERS_PASSWORD`):
 
 ```bash
 curl -s http://localhost:8080/api/v1/auth/token \
@@ -157,11 +167,29 @@ curl -s http://localhost:8080/api/v1/auth/token \
   -d '{"email":"admin@demo.local","password":"LA_CLAVE_DE_DEMO"}'
 ```
 
-Los horarios libres de un día no piden sesión. La respuesta es una lista de objetos con `start` y `end`. El `id` del profesional sale de la agenda o de la base de demo:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1...",
+  "expiresAt": "2026-11-25T23:15:03.5685535+00:00",
+  "role": "Admin"
+}
+```
+
+Los horarios libres de un día no piden sesión. El `id` del profesional sale de la agenda o de la base de demo:
 
 ```bash
-curl -s "http://localhost:8080/api/v1/professionals/ID_DEL_PROFESIONAL/available-slots?date=2026-12-01&durationMinutes=30"
+curl -s "http://localhost:8080/api/v1/professionals/ID_DEL_PROFESIONAL/available-slots?date=2026-11-27&durationMinutes=30"
 ```
+
+```json
+[
+  { "start": "2026-11-27T08:00:00", "end": "2026-11-27T08:30:00" },
+  { "start": "2026-11-27T08:15:00", "end": "2026-11-27T08:45:00" },
+  { "start": "2026-11-27T08:30:00", "end": "2026-11-27T09:00:00" }
+]
+```
+
+Salida real recortada: ese día la profesional de demo tenía 25 horarios libres de 30 minutos.
 
 ### Detrás de un proxy
 
