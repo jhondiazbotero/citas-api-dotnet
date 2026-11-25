@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Citas.Api/Citas.Api.csproj" />
+    <Project Path="src/Citas.Application/Citas.Application.csproj" />
+    <Project Path="src/Citas.Domain/Citas.Domain.csproj" />
+    <Project Path="src/Citas.Infrastructure/Citas.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Citas.Api.Tests/Citas.Api.Tests.csproj" />
+    <Project Path="tests/Citas.Application.Tests/Citas.Application.Tests.csproj" />
+    <Project Path="tests/Citas.Architecture.Tests/Citas.Architecture.Tests.csproj" />
+    <Project Path="tests/Citas.Domain.Tests/Citas.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
