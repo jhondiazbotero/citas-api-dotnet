@@ -9,6 +9,8 @@ public class DependencyRulesTests
     private const string Application = "Citas.Application";
     private const string Infrastructure = "Citas.Infrastructure";
     private const string Api = "Citas.Api";
+    private const string EntityFrameworkCore = "Microsoft.EntityFrameworkCore";
+    private const string AspNetCore = "Microsoft.AspNetCore";
 
     private static readonly Assembly DomainAssembly = Citas.Domain.AssemblyReference.Assembly;
     private static readonly Assembly ApplicationAssembly = Citas.Application.AssemblyReference.Assembly;
@@ -35,6 +37,18 @@ public class DependencyRulesTests
 
         Assert.True(result.IsSuccessful, Describe(result));
         AssertNoReferences(ApplicationAssembly, Infrastructure, Api);
+    }
+
+    [Fact]
+    public void Application_should_not_depend_on_EntityFrameworkCore_or_AspNetCore()
+    {
+        var result = Types.InAssembly(ApplicationAssembly)
+            .ShouldNot()
+            .HaveDependencyOnAny(EntityFrameworkCore, AspNetCore)
+            .GetResult();
+
+        Assert.True(result.IsSuccessful, Describe(result));
+        AssertNoReferences(ApplicationAssembly, EntityFrameworkCore, AspNetCore);
     }
 
     // Second safety net: checks assembly references, not just types.
