@@ -12,6 +12,8 @@ public class ErrorCatalogTests
         typeof(ProfessionalErrors),
         typeof(PatientErrors),
         typeof(TimeRangeErrors),
+        typeof(StaffUserErrors),
+        typeof(AuthErrors),
     ];
 
     private static IEnumerable<(Type Catalog, Error Error)> AllErrors() =>
