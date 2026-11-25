@@ -2,29 +2,44 @@ using Citas.Application.Abstractions;
 using Citas.Domain.Appointments;
 using Citas.Domain.Patients;
 using Citas.Domain.Professionals;
+using Citas.Domain.Staff;
 using Citas.Domain.ValueObjects;
 using Citas.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Citas.Infrastructure.Seeding;
 
 /// <summary>
 /// Loads a small, entirely fictional data set so the API has something to show. Safe to run many times:
 /// people are matched by document number or full name, and appointments are only created for patients without any.
+/// Sign-in users for the demo (admin, reception, one per professional) are created only when <c>Demo:UsersPassword</c> is set:
+/// the password never lives in a versioned file.
 /// </summary>
-public sealed class DemoDataSeeder(CitasDbContext db, IClinicClock clock, IConfiguration configuration)
+public sealed class DemoDataSeeder(
+    CitasDbContext db,
+    IClinicClock clock,
+    IConfiguration configuration,
+    IPasswordHasher passwordHasher,
+    ILogger<DemoDataSeeder> logger)
 {
     public const string ConfigurationKey = "Demo:SeedData";
+
+    public const string UsersPasswordKey = "Demo:UsersPassword";
+
+    public const string AdminEmail = "admin@demo.local";
+
+    public const string ReceptionEmail = "recepcion@demo.local";
 
     private static readonly DayOfWeek[] Weekdays =
         [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday];
 
-    private static readonly (string Name, string Specialty, bool WorksSaturday)[] ProfessionalData =
+    private static readonly (string Name, string Specialty, bool WorksSaturday, string Email)[] ProfessionalData =
     [
-        ("Dra. Elena Marquina", "Medicina general", true),
-        ("Dr. Tomás Alderete", "Odontología", false),
-        ("Dra. Irene Valcárcel", "Psicología", false),
+        ("Dra. Elena Marquina", "Medicina general", true, "marquina@demo.local"),
+        ("Dr. Tomás Alderete", "Odontología", false, "alderete@demo.local"),
+        ("Dra. Irene Valcárcel", "Psicología", false, "valcarcel@demo.local"),
     ];
 
     private static readonly (string Name, string Document, string Phone)[] PatientData =
@@ -67,12 +82,44 @@ public sealed class DemoDataSeeder(CitasDbContext db, IClinicClock clock, IConfi
 
         await EnsureAppointmentsAsync(professionals, patients, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+
+        await EnsureUsersAsync(professionals, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task EnsureUsersAsync(List<Professional> professionals, CancellationToken cancellationToken)
+    {
+        string? password = configuration[UsersPasswordKey];
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            logger.LogWarning(
+                "Demo users were not created because {Setting} is not set. Set it (user-secrets or an environment variable) to be able to sign in",
+                UsersPasswordKey);
+            return;
+        }
+
+        List<(string Email, StaffRole Role, Guid? ProfessionalId)> wanted =
+        [
+            (AdminEmail, StaffRole.Admin, null),
+            (ReceptionEmail, StaffRole.Reception, null),
+        ];
+        for (int i = 0; i < ProfessionalData.Length; i++)
+        {
+            wanted.Add((ProfessionalData[i].Email, StaffRole.Professional, professionals[i].Id));
+        }
+
+        HashSet<string> existing = [.. await db.StaffUsers.Select(u => u.Email).ToListAsync(cancellationToken)];
+        foreach ((string email, StaffRole role, Guid? professionalId) in wanted.Where(w => !existing.Contains(w.Email)))
+        {
+            // One salt per user: the hasher makes a new one on every call.
+            db.StaffUsers.Add(StaffUser.Create(email, passwordHasher.Hash(password), role, professionalId).Value);
+        }
     }
 
     private async Task<List<Professional>> EnsureProfessionalsAsync(CancellationToken cancellationToken)
     {
         List<Professional> result = [];
-        foreach ((string name, string specialty, bool worksSaturday) in ProfessionalData)
+        foreach ((string name, string specialty, bool worksSaturday, _) in ProfessionalData)
         {
             Professional? existing = await db.Professionals.FirstOrDefaultAsync(p => p.FullName == name, cancellationToken);
             if (existing is not null)
