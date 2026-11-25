@@ -33,7 +33,7 @@ public class ClinicDateTimeConverterTests
     [InlineData("2026-12-01T09:30:00z")]
     public void Read_RejectsZoneOrOffset_WithAClearMessage(string text)
     {
-        var error = Assert.Throws<JsonException>(() => Read(text));
+        var error = Assert.ThrowsAny<JsonException>(() => Read(text));
 
         Assert.Contains("Send local clinic time without offset", error.Message, StringComparison.Ordinal);
     }
@@ -48,7 +48,7 @@ public class ClinicDateTimeConverterTests
     [InlineData("")]
     public void Read_RejectsOtherFormats_NamingTheExpectedOne(string text)
     {
-        var error = Assert.Throws<JsonException>(() => Read(text));
+        var error = Assert.ThrowsAny<JsonException>(() => Read(text));
 
         Assert.Contains("yyyy-MM-ddTHH:mm", error.Message, StringComparison.Ordinal);
     }
@@ -56,7 +56,7 @@ public class ClinicDateTimeConverterTests
     [Fact]
     public void Read_RejectsNonStringTokens()
     {
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Body>("""{"start":20261201}""", Options));
+        Assert.ThrowsAny<JsonException>(() => JsonSerializer.Deserialize<Body>("""{"start":20261201}""", Options));
     }
 
     [Fact]

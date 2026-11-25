@@ -34,6 +34,14 @@ public sealed class PostgresFixture : IAsyncLifetime
         return ConnectionStringFor(name);
     }
 
+    /// <summary>A database with no tables at all, for tests that need the application itself to run the migrations.</summary>
+    public async Task<string> CreateEmptyDatabaseAsync()
+    {
+        string name = $"citas_{Guid.NewGuid():N}";
+        await ExecuteAsync($"CREATE DATABASE {name}");
+        return ConnectionStringFor(name);
+    }
+
     public async Task DropDatabaseAsync(string connectionString)
     {
         string name = new NpgsqlConnectionStringBuilder(connectionString).Database!;
