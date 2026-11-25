@@ -16,6 +16,13 @@ internal sealed record JwtOptions(string Issuer, string Audience, string Signing
 
     public byte[] KeyBytes => Encoding.UTF8.GetBytes(SigningKey);
 
+    /// <summary>The text of a record lists every property; the signing key must not be one of them (it would reach a log or an error page).</summary>
+    private bool PrintMembers(StringBuilder builder)
+    {
+        builder.Append($"{nameof(Issuer)} = {Issuer}, {nameof(Audience)} = {Audience}, {nameof(ExpiresMinutes)} = {ExpiresMinutes}");
+        return true;
+    }
+
     /// <summary>Reads and checks the section. Throws <see cref="InvalidOperationException"/> with an actionable message, so the app does not start half configured.</summary>
     public static JwtOptions From(IConfiguration configuration)
     {
