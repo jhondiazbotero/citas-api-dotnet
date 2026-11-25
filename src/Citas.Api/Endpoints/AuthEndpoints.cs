@@ -13,7 +13,7 @@ internal static class AuthEndpoints
 
         group.MapPost("/token", LoginAsync)
             .AllowAnonymous()
-            .RequireRateLimiting(JwtSetup.LoginRateLimit)
+            .RequireRateLimiting(RateLimitingSetup.LoginRateLimit)
             .WithName("Login")
             .WithSummary("Sign in")
             .WithDescription("Exchanges the email and password of a staff user for a bearer access token. Any wrong email, wrong password or deactivated user gets the same 401, so the answer does not reveal which one failed. At most 5 attempts per minute from one address: the sixth gets 429 with a `Retry-After` header. Patients do not sign in.")

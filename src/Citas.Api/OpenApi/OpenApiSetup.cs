@@ -29,7 +29,7 @@ internal static class OpenApiSetup
         **Sign in.** Staff users (Admin, Reception, Professional) call `POST /api/v1/auth/token` with email and password and get a
         bearer token. Send it as `Authorization: Bearer <token>`; in this page use the Authentication panel. Each operation says
         which role it needs under **Access**. 401 means no valid token, 403 means the role is not allowed, 429 means too many
-        sign-in attempts (5 per minute per address). Patients do not sign in.
+        sign-in attempts (5 per minute per address) or too many public reads (free times and the list of professionals share 60 per minute per address). Patients do not sign in.
         """;
 
     public static void AddCitasTransformers(this VersionedOpenApiOptions options)

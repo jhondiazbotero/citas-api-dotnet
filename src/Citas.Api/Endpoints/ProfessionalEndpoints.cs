@@ -28,10 +28,12 @@ internal static class ProfessionalEndpoints
 
         group.MapGet("/", ListAsync)
             .AllowAnonymous()
+            .RequireRateLimiting(RateLimitingSetup.PublicReadRateLimit)
             .WithName("ListProfessionals")
             .WithSummary("List the active professionals")
-            .WithDescription("Public list of the active professionals, by name: only `id`, `fullName` and `specialty`, so a visitor can find the id to ask for free times. No schedules and no inactive professionals.")
-            .Produces<IReadOnlyList<ProfessionalSummaryResponse>>();
+            .WithDescription("Public list of the active professionals, by name: only `id`, `fullName` and `specialty`, so a visitor can find the id to ask for free times. No schedules and no inactive professionals. Limited to 60 requests per minute per address, shared with the free times: the next one gets 429 with a `Retry-After` header.")
+            .Produces<IReadOnlyList<ProfessionalSummaryResponse>>()
+            .ProducesProblem(StatusCodes.Status429TooManyRequests);
 
         group.MapGet("/{id}", GetAsync)
             .RequireAccess(Policies.OwnProfessional)
@@ -72,12 +74,14 @@ internal static class ProfessionalEndpoints
 
         group.MapGet("/{id}/available-slots", GetAvailableSlotsAsync)
             .AllowAnonymous()
+            .RequireRateLimiting(RateLimitingSetup.PublicReadRateLimit)
             .WithName("GetAvailableSlots")
             .WithSummary("Free start times of a day")
-            .WithDescription("Start times (every quarter hour) at which an appointment of `durationMinutes` can be booked on `date`, using the same rules as booking: working hours, existing appointments and the one-hour notice. An inactive professional has none.")
+            .WithDescription("Start times (every quarter hour) at which an appointment of `durationMinutes` can be booked on `date`, using the same rules as booking: working hours, existing appointments and the one-hour notice. An inactive professional has none. Limited to 60 requests per minute per address, shared with the list of professionals: the next one gets 429 with a `Retry-After` header.")
             .Produces<IReadOnlyList<SlotResponse>>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests);
 
         return api;
     }

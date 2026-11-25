@@ -85,6 +85,7 @@ El estado HTTP lo decide `ErrorStatus.For` a partir del código del error. Estas
 | Algo que no existe | `Appointment.NotFound`, `Patient.NotFound`, `Professional.NotFound` | 404 |
 | Correo o contraseña incorrectos (siempre el mismo mensaje) | `Auth.InvalidCredentials` | 401 |
 | Más de 5 intentos de inicio de sesión por minuto desde una dirección | `Auth.TooManyAttempts` | 429 |
+| Más de 60 consultas públicas por minuto desde una dirección (horarios libres y listado de profesionales, con una sola cuota) | `Request.TooManyRequests` | 429 |
 | El rol no permite la acción | `Auth.Forbidden` | 403 |
 
 Los datos mal formados (nombres, teléfonos, cuerpos que no son JSON, fechas con zona) dan 400, con códigos como `Patient.InvalidName` o `Request.InvalidDateTime`. Todas las respuestas de error son ProblemDetails con los campos `type`, `title`, `status` y `detail`, más el `code`:
@@ -107,13 +108,13 @@ Todos cuelgan de `/api/v1`. La documentación interactiva está en `/docs`. «Pe
 | POST | `/staff-users` | Admin |
 | POST | `/patients` | Admin o Reception |
 | GET | `/patients/{id}` | Admin o Reception |
-| GET | `/professionals` | Cualquiera, sin sesión (solo `id`, `fullName` y `specialty` de los activos, por nombre) |
+| GET | `/professionals` | Cualquiera, sin sesión (solo `id`, `fullName` y `specialty` de los activos, por nombre; 60 por minuto por dirección) |
 | POST | `/professionals` | Admin |
 | GET | `/professionals/{id}` | Admin o Reception, o el mismo profesional |
 | PUT | `/professionals/{id}/working-hours` | Admin |
 | POST | `/professionals/{id}/deactivate` | Admin |
 | GET | `/professionals/{id}/agenda?from=&to=` | Admin o Reception, o el mismo profesional |
-| GET | `/professionals/{id}/available-slots?date=&durationMinutes=` | Cualquiera, sin sesión |
+| GET | `/professionals/{id}/available-slots?date=&durationMinutes=` | Cualquiera, sin sesión (60 por minuto por dirección, la misma cuota del listado) |
 | POST | `/appointments` | Admin o Reception |
 | GET | `/appointments/{id}` | Admin o Reception |
 | POST | `/appointments/{id}/reschedule` | Admin o Reception |
@@ -216,7 +217,7 @@ Salida real recortada: ese día la profesional de demo tenía 25 horarios libres
 
 ### Detrás de un proxy
 
-El límite de intentos de inicio de sesión cuenta por la dirección IP de la conexión. Por defecto la API **no** lee `X-Forwarded-For` (`ForwardedHeaders__Enabled=false`): sin un proxy delante, cualquiera podría escribir esa cabecera y cambiar de dirección en cada petición para esquivar el límite. Por eso ni el `Dockerfile` ni el `docker-compose.yml` la encienden.
+Los límites de uso (5 intentos de inicio de sesión por minuto y 60 consultas públicas por minuto) cuentan por la dirección IP de la conexión. Por defecto la API **no** lee `X-Forwarded-For` (`ForwardedHeaders__Enabled=false`): sin un proxy delante, cualquiera podría escribir esa cabecera y cambiar de dirección en cada petición para esquivar el límite. Por eso ni el `Dockerfile` ni el `docker-compose.yml` la encienden.
 
 Se enciende solo cuando la API queda detrás de un proxy inverso que pone la cabecera, con `ForwardedHeaders__Enabled=true`. Sin esa variable, detrás de un proxy todos los clientes comparten una sola dirección (la del proxy) y también una sola cuota. Con ella, la API cree solo la última entrada de la cabecera, la que agrega el proxy más cercano, y la API no debe ser alcanzable sin pasar por él. Más en el [ADR 0006](docs/adr/0006-jwt-sin-refresh-tokens-y-usuarios-del-personal.md).
 

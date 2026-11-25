@@ -1,10 +1,5 @@
-using System.Threading.RateLimiting;
-using Citas.Api.Http;
 using Citas.Application.Abstractions;
-using Citas.Domain.Errors;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
@@ -12,13 +7,10 @@ namespace Citas.Api.Security;
 
 internal static class JwtSetup
 {
-    public const string LoginRateLimit = "login";
-    public const int LoginAttemptsPerWindow = 5;
-    public static readonly TimeSpan LoginWindow = TimeSpan.FromMinutes(1);
     public static readonly TimeSpan ClockSkew = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// Bearer authentication, the issuer of tokens and the login rate limit. Reads the <c>Jwt</c> section right away:
+    /// Bearer authentication, the issuer of tokens, the policies of authorization and the rate limits. Reads the <c>Jwt</c> section right away:
     /// a missing or short signing key stops the app from starting.
     /// </summary>
     public static IServiceCollection AddCitasSecurity(this IServiceCollection services, IConfiguration configuration)
@@ -53,19 +45,7 @@ internal static class JwtSetup
             });
 
         services.AddCitasAuthorization();
-        services.AddRateLimiter(options =>
-        {
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.AddPolicy(LoginRateLimit, httpContext => RateLimitPartition.GetFixedWindowLimiter(
-                httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = LoginAttemptsPerWindow,
-                    Window = LoginWindow,
-                    QueueLimit = 0,
-                }));
-            options.OnRejected = WriteTooManyAttemptsAsync;
-        });
+        services.AddCitasRateLimiting();
 
         return services;
     }
@@ -90,31 +70,5 @@ internal static class JwtSetup
         }
 
         return true;
-    }
-
-    private static async ValueTask WriteTooManyAttemptsAsync(OnRejectedContext context, CancellationToken cancellationToken)
-    {
-        HttpContext http = context.HttpContext;
-        int retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan wait)
-            ? Math.Max(1, (int)Math.Ceiling(wait.TotalSeconds))
-            : (int)LoginWindow.TotalSeconds;
-
-        http.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        http.Response.Headers.RetryAfter = retryAfter.ToString(System.Globalization.CultureInfo.InvariantCulture);
-
-        await http.RequestServices.GetRequiredService<IProblemDetailsService>().WriteAsync(new ProblemDetailsContext
-        {
-            HttpContext = http,
-            ProblemDetails = new ProblemDetails
-            {
-                Status = StatusCodes.Status429TooManyRequests,
-
-                // The framework has no default for 429, so the two standard members are filled in here.
-                Type = "https://tools.ietf.org/html/rfc6585#section-4",
-                Title = "Too Many Requests",
-                Detail = AuthErrors.TooManyAttempts.Message,
-                Extensions = { [ProblemResult.CodeExtension] = AuthErrors.TooManyAttempts.Code },
-            },
-        });
     }
 }

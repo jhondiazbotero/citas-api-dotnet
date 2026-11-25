@@ -14,6 +14,7 @@ La API tiene dos tipos de uso: el público consulta horarios libres sin identifi
 - Las contraseñas se guardan con `PasswordHasher` de `Microsoft.Extensions.Identity.Core`, detrás de un puerto propio. No uso ASP.NET Core Identity completo.
 - Las políticas se declaran por endpoint y los permisos por recurso (un profesional solo ve su agenda y sus citas) los decide un único manejador de autorización. Si el recurso no existe, la respuesta es la misma que si no fuera suyo, así que no sirve para descubrir ids.
 - El login responde igual (401) para correo desconocido, contraseña incorrecta o usuario desactivado, y verifica la contraseña siempre. Está limitado a 5 intentos por minuto por dirección IP, con 429 y `Retry-After`.
+- Las dos consultas públicas (horarios libres y listado de profesionales) comparten un límite de 60 peticiones por minuto por dirección IP, de ventana fija. La siguiente recibe 429 con `Retry-After` y el código `Request.TooManyRequests`. Sin esto, cualquiera podría golpear la base sin identificarse.
 
 ## Consecuencias
 
@@ -21,7 +22,7 @@ Estos son los límites, y los dejo escritos porque importan:
 
 - No hay refresh tokens: cuando el token vence, la persona vuelve a iniciar sesión.
 - No hay revocación. Un token ya emitido sirve hasta que vence, aunque el usuario se desactive o cambie de rol. Se reduce con una vida corta, pero no desaparece.
-- El límite de intentos vive en la memoria de cada instancia. Con varias instancias, cada una cuenta por separado.
+- Los límites de uso viven en la memoria de cada instancia. Con varias instancias, cada una cuenta por separado.
 - `X-Forwarded-For` está apagada por defecto (`ForwardedHeaders:Enabled=false`) y ni el `Dockerfile` ni el `docker-compose.yml` la encienden. La razón: sin un proxy delante, cualquiera puede escribir esa cabecera y elegir su propia dirección, y el límite de intentos dejaría de servir. Con ella apagada, el límite cuenta por la IP real de la conexión. Se enciende solo cuando la API queda detrás de un proxy inverso que pone la cabecera; entonces la API cree únicamente la última entrada (la del proxy más cercano) y no debe ser alcanzable sin pasar por él. Si se olvida encenderla detrás de un proxy, todos los clientes comparten la cuota del proxy: falla hacia lo estricto, no hacia lo abierto.
 - Rotar la llave invalida todos los tokens vigentes.
 

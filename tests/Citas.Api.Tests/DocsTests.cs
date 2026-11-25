@@ -230,6 +230,8 @@ public class DocsSecurityTests(PostgresFixture postgres) : ApiTestBase(postgres)
         Assert.True(login.TryGetProperty("200", out _));
         Assert.True(login.TryGetProperty("401", out _));
         Assert.True(login.TryGetProperty("429", out _));
+        Assert.True(paths.GetProperty("/api/v1/professionals").GetProperty("get").GetProperty("responses").TryGetProperty("429", out _));
+        Assert.True(paths.GetProperty("/api/v1/professionals/{id}/available-slots").GetProperty("get").GetProperty("responses").TryGetProperty("429", out _));
         Assert.False(login.TryGetProperty("403", out _));
     }
 
