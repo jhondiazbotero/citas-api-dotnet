@@ -7,7 +7,7 @@ namespace Citas.Api.Contracts;
 public sealed record RegisterPatientRequest(
     [property: Description("Full name, 2 to 100 characters.")] string FullName,
     [property: Description("Identity document number, 5 to 20 digits. It must be unique.")] string DocumentNumber,
-    [property: Description("Optional phone number, 7 to 15 digits.")] string? Phone);
+    [property: Description("Optional phone number, 7 to 15 digits.")] string? Phone = null);
 
 [Description("Data to register a professional with the weekly hours in which they see patients.")]
 public sealed record RegisterProfessionalRequest(
@@ -27,7 +27,7 @@ public sealed record ScheduleAppointmentRequest(
     [property: Description("Id of the patient.")] Guid PatientId,
     [property: Description("Start in local clinic time, yyyy-MM-ddTHH:mm[:ss], without zone or offset.")] DateTime Start,
     [property: Description("Length in minutes: 15 to 120, in steps of 15.")] int DurationMinutes,
-    [property: Description("Optional reason for the visit, up to 250 characters.")] string? Reason);
+    [property: Description("Optional reason for the visit, up to 250 characters.")] string? Reason = null);
 
 [Description("The new time for an appointment.")]
 public sealed record RescheduleAppointmentRequest(

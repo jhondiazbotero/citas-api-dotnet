@@ -54,7 +54,11 @@ internal static class ApiPipeline
         app.MapScalarApiReference(DocsPath, options =>
         {
             options.Title = "Citas API";
+            // Nothing leaves the page: no telemetry, no AI chat, no MCP, no developer toolbar.
             options.Telemetry = false;
+            options.Agent = new ScalarAgentOptions { Disabled = true };
+            options.Mcp = new ScalarMcpOptions { Disabled = true };
+            options.ShowDeveloperTools = DeveloperToolsVisibility.Never;
         });
 
         app.MapGet("/", () => Results.Redirect(DocsPath)).ExcludeFromDescription();

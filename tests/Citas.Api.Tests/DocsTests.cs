@@ -118,6 +118,20 @@ public class DocsTests(PostgresFixture postgres) : ApiTestBase(postgres)
     }
 
     [Fact]
+    public async Task OpenApi_MarksOptionalFieldsAsOptional()
+    {
+        JsonElement document = await OpenApiAsync();
+        JsonElement schemas = document.GetProperty("components").GetProperty("schemas");
+
+        string[] schedule = [.. schemas.GetProperty("ScheduleAppointmentRequest").GetProperty("required").EnumerateArray().Select(e => e.GetString()!)];
+        string[] patient = [.. schemas.GetProperty("RegisterPatientRequest").GetProperty("required").EnumerateArray().Select(e => e.GetString()!)];
+
+        Assert.DoesNotContain("reason", schedule);
+        Assert.Contains("start", schedule);
+        Assert.DoesNotContain("phone", patient);
+    }
+
+    [Fact]
     public async Task OpenApi_ShipsExamplesForTheMainRequests()
     {
         JsonElement document = await OpenApiAsync();
