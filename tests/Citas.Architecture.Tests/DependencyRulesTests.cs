@@ -14,7 +14,7 @@ public class DependencyRulesTests
     private static readonly Assembly ApplicationAssembly = Citas.Application.AssemblyReference.Assembly;
 
     [Fact]
-    public void Domain_no_depende_de_otras_capas()
+    public void Domain_should_not_depend_on_other_layers()
     {
         var result = Types.InAssembly(DomainAssembly)
             .ShouldNot()
@@ -26,7 +26,7 @@ public class DependencyRulesTests
     }
 
     [Fact]
-    public void Application_no_depende_de_Infrastructure_ni_Api()
+    public void Application_should_not_depend_on_Infrastructure_or_Api()
     {
         var result = Types.InAssembly(ApplicationAssembly)
             .ShouldNot()
@@ -37,7 +37,7 @@ public class DependencyRulesTests
         AssertNoReferences(ApplicationAssembly, Infrastructure, Api);
     }
 
-    // Segunda red de seguridad: mira las referencias de ensamblado, no solo los tipos.
+    // Second safety net: checks assembly references, not just types.
     private static void AssertNoReferences(Assembly assembly, params string[] forbidden)
     {
         var referenced = assembly.GetReferencedAssemblies().Select(a => a.Name).ToHashSet();
@@ -47,6 +47,6 @@ public class DependencyRulesTests
         }
     }
 
-    private static string Describe(TestResult result) =>
-        "Tipos que violan la regla: " + string.Join(", ", result.FailingTypeNames ?? []);
+    private static string Describe(NetArchTest.Rules.TestResult result) =>
+        "Types violating the rule: " + string.Join(", ", result.FailingTypeNames ?? []);
 }

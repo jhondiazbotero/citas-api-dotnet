@@ -3,5 +3,5 @@ namespace Citas.Application.Tests;
 public class SmokeTests
 {
     [Fact]
-    public void Placeholder_se_reemplaza_en_T3() => Assert.True(true);
+    public void Placeholder_replaced_in_T3() => Assert.True(true);
 }
