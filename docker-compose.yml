@@ -25,7 +25,8 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      # Only on localhost: in production the API sits behind a reverse proxy that sets X-Forwarded-For.
+      - "127.0.0.1:8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__Citas: Host=db;Port=5432;Database=citas;Username=citas;Password=${POSTGRES_PASSWORD}
