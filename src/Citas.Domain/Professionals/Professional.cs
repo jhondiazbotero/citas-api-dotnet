@@ -33,7 +33,7 @@ public sealed class Professional
             return ProfessionalErrors.InvalidName;
         }
 
-        if (string.IsNullOrWhiteSpace(specialty) || specialty.Length < 2 || specialty.Length > 60)
+        if (!TextRules.IsTrimmedWithin(specialty, 2, 60))
         {
             return ProfessionalErrors.InvalidSpecialty;
         }

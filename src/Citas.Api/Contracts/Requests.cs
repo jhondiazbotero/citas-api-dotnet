@@ -13,7 +13,7 @@ public sealed record RegisterPatientRequest(
 [Description("Data to register a professional with the weekly hours in which they see patients.")]
 public sealed record RegisterProfessionalRequest(
     [property: Description("Full name, 2 to 100 characters.")] string FullName,
-    [property: Description("Specialty, 2 to 60 characters.")] string Specialty,
+    [property: Description("Specialty, 2 to 60 characters, no spaces at either end.")] string Specialty,
     [property: Description("Weekly working windows. At least one; windows of the same day cannot overlap.")]
     IReadOnlyList<WorkingSlotDto> WorkingHours);
 

@@ -63,6 +63,30 @@ public class ProfessionalTests
         Assert.Equal(ProfessionalErrors.InvalidSpecialty, result.Error);
     }
 
+    [Theory]
+    [InlineData(" Cardiology")]
+    [InlineData("Cardiology ")]
+    [InlineData("\tCardiology")]
+    [InlineData("Cardiology\n")]
+    public void Create_SpecialtyWithSurroundingSpace_FailsWithInvalidSpecialty(string specialty)
+    {
+        var result = Professional.Create("Dr. Luis Mora", specialty);
+
+        Assert.Equal(ProfessionalErrors.InvalidSpecialty, result.Error);
+    }
+
+    [Fact]
+    public void Create_SpecialtyWithAnInnerSpace_Succeeds()
+    {
+        Assert.True(Professional.Create("Dr. Luis Mora", "Medicina general").IsSuccess);
+    }
+
+    [Fact]
+    public void Create_SpecialtyWith2Characters_Succeeds()
+    {
+        Assert.True(Professional.Create("Dr. Luis Mora", "ab").IsSuccess);
+    }
+
     [Fact]
     public void Create_SpecialtyWith60Characters_Succeeds()
     {

@@ -8,7 +8,7 @@ public static class ProfessionalErrors
         new("Professional.InvalidName", "Full name must be 2 to 100 characters with no surrounding spaces.");
 
     public static readonly Error InvalidSpecialty =
-        new("Professional.InvalidSpecialty", "Specialty must be 2 to 60 characters.");
+        new("Professional.InvalidSpecialty", "Specialty must be 2 to 60 characters with no surrounding spaces.");
 
     public static readonly Error InvalidSlot =
         new("Professional.InvalidSlot", "A working slot must end after it starts.");
