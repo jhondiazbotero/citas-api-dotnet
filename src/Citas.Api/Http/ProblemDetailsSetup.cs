@@ -15,10 +15,13 @@ internal static class ProblemDetailsSetup
         }
 
         int status = problem.Status ?? context.HttpContext.Response.StatusCode;
-        if (status == StatusCodes.Status415UnsupportedMediaType)
+        problem.Detail ??= status switch
         {
-            problem.Detail ??= "Send the body as application/json.";
-        }
+            StatusCodes.Status401Unauthorized => AuthErrors.Unauthorized.Message,
+            StatusCodes.Status403Forbidden => AuthErrors.Forbidden.Message,
+            StatusCodes.Status415UnsupportedMediaType => "Send the body as application/json.",
+            _ => null,
+        };
 
         problem.Extensions[ProblemResult.CodeExtension] = status switch
         {

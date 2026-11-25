@@ -19,10 +19,8 @@ public class DemoUsersTests(PostgresFixture postgres)
     {
         string connection = await postgres.CreateEmptyDatabaseAsync();
         var settings = new Dictionary<string, string> { ["Database:MigrateOnStartup"] = "true", ["Demo:SeedData"] = "true" };
-        if (usersPassword is not null)
-        {
-            settings["Demo:UsersPassword"] = usersPassword;
-        }
+        // Always set, even to nothing: an environment variable of the developer's machine must not leak into the test.
+        settings["Demo:UsersPassword"] = usersPassword ?? string.Empty;
 
         var factory = new CitasApiFactory(connection, settings);
         factory.CreateClient().Dispose();

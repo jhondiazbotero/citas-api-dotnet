@@ -140,6 +140,23 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
     }
 
     [Fact]
+    public async Task The401And403_ExplainThemselves_WithoutNamingTheRoleThatWouldWork()
+    {
+        Ids ids = await PrepareAsync(started: false);
+        string url = $"{V1}/professionals/{ids.Professional}/deactivate";
+        using HttpClient reception = ClientAs(StaffRole.Reception);
+
+        using var unauthorized = await Anonymous.PostAsync(url, null, Cancellation);
+        using var forbidden = await reception.PostAsync(url, null, Cancellation);
+
+        JsonElement a = await AssertProblemAsync(unauthorized, HttpStatusCode.Unauthorized, "Auth.Unauthorized");
+        JsonElement f = await AssertProblemAsync(forbidden, HttpStatusCode.Forbidden, "Auth.Forbidden");
+        Assert.Contains("token", a.GetProperty("detail").GetString(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("role", f.GetProperty("detail").GetString(), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Admin", f.GetProperty("detail").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task ADeniedCall_ChangesNothing()
     {
         Ids ids = await PrepareAsync(started: false);
