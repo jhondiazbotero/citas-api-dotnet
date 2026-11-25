@@ -22,7 +22,7 @@ Un consultorio tiene profesionales con horarios semanales y pacientes que piden 
 - Una restricción de exclusión de PostgreSQL que impide dos citas cruzadas aunque lleguen a la vez, con la prueba de carrera real contra la base. Ver la [migración inicial](src/Citas.Infrastructure/Persistence/Migrations/20261125182054_InitialCreate.cs) y [`UnitOfWorkTests`](tests/Citas.Infrastructure.Tests/UnitOfWorkTests.cs).
 - Clean Architecture con cuatro proyectos, y las reglas de dependencia comprobadas por pruebas de arquitectura. Ver [`DependencyRulesTests`](tests/Citas.Architecture.Tests/DependencyRulesTests.cs).
 - Pruebas de integración contra PostgreSQL real levantado con Testcontainers. Ver [`PostgresFixture`](tests/Citas.Testing/PostgresFixture.cs).
-- Seguridad con JWT, tres roles y permisos por recurso (un profesional solo ve su agenda y sus citas). Ver [`src/Citas.Api/Security`](src/Citas.Api/Security).
+- Seguridad con JWT, tres roles y permisos por recurso (un profesional solo ve su ficha, su agenda y sus citas). Ver [`src/Citas.Api/Security`](src/Citas.Api/Security).
 - Errores con ProblemDetails (RFC 9457) y un campo `code` estable que el cliente puede usar. Ver [`ErrorStatus`](src/Citas.Api/Http/ErrorStatus.cs).
 - CI con pruebas y cobertura. Ver [`ci.yml`](.github/workflows/ci.yml).
 
@@ -55,7 +55,7 @@ flowchart LR
 | Proyecto | Qué vive ahí |
 |---|---|
 | `Citas.Domain` | Profesionales, pacientes, citas, usuarios del personal, el servicio `AppointmentScheduler` con las reglas de agendamiento, `Result`, `Error` y los catálogos de errores. |
-| `Citas.Application` | Un manejador por caso de uso (15 en total), validación con FluentValidation y las interfaces que implementa infraestructura (repositorios, reloj, hash de contraseñas, emisor de tokens). |
+| `Citas.Application` | Un manejador por caso de uso (17 en total), validación con FluentValidation y las interfaces que implementa infraestructura (repositorios, reloj, hash de contraseñas, emisor de tokens). |
 | `Citas.Infrastructure` | EF Core con PostgreSQL, configuraciones, migraciones, repositorios, hash de contraseñas, reloj del consultorio y datos de demo. |
 | `Citas.Api` | Minimal APIs, versionado `/api/v1`, autenticación y políticas, ProblemDetails, OpenAPI con Scalar, health checks y logs con Serilog. |
 
@@ -80,7 +80,7 @@ El estado HTTP lo decide `ErrorStatus.For` a partir del código del error. Estas
 | Completar o marcar inasistencia exige que la cita ya haya empezado | `Appointment.NotStartedYet` | 422 |
 | Dos personas cambian la misma cita a la vez | `Appointment.ConcurrencyConflict` | 409 |
 | El documento de un paciente es único | `Patient.DuplicateDocument` | 409 |
-| Un profesional necesita al menos una franja y las de un mismo día no se cruzan | `Professional.NoWorkingHours`, `Professional.OverlappingWorkingHours` | 422 |
+| Un profesional necesita al menos una franja y las de un mismo día no se cruzan. Dos franjas que se tocan (08:00–12:00 y 12:00–16:00) valen como una sola para agendar | `Professional.NoWorkingHours`, `Professional.OverlappingWorkingHours` | 422 |
 | Duración de 15 a 120 minutos en pasos de 15, inicio en minuto 0, 15, 30 o 45 | `TimeRange.InvalidDuration`, `TimeRange.InvalidStart` | 400 |
 | Algo que no existe | `Appointment.NotFound`, `Patient.NotFound`, `Professional.NotFound` | 404 |
 | Correo o contraseña incorrectos (siempre el mismo mensaje) | `Auth.InvalidCredentials` | 401 |
@@ -199,7 +199,7 @@ curl -s http://localhost:8080/api/v1/auth/token \
 }
 ```
 
-Los horarios libres de un día no piden sesión. El `id` del profesional sale de la agenda o de la base de demo:
+Los horarios libres de un día no piden sesión. El `id` del profesional sale del listado público (`GET /api/v1/professionals`, que devuelve solo `id`, `fullName` y `specialty` de los activos):
 
 ```bash
 curl -s "http://localhost:8080/api/v1/professionals/ID_DEL_PROFESIONAL/available-slots?date=2026-11-27&durationMinutes=30"
@@ -231,17 +231,17 @@ dotnet test CitasApi.slnx -c Release \
   --results-directory ./TestResults
 ```
 
-Medido el 25 de noviembre de 2026 con ese comando: 687 pruebas, todas en verde.
+Medido el 25 de noviembre de 2026 con ese comando: 794 pruebas, todas en verde.
 
 | Proyecto de pruebas | Pruebas | Qué cubre |
 |---|---|---|
-| `Citas.Domain.Tests` | 231 | Reglas del dominio, sin base de datos |
-| `Citas.Application.Tests` | 125 | Casos de uso con repositorios falsos |
-| `Citas.Architecture.Tests` | 8 | Reglas de dependencia entre capas y ningún secreto en archivos versionados |
-| `Citas.Infrastructure.Tests` | 73 | EF Core y las restricciones contra PostgreSQL real |
-| `Citas.Api.Tests` | 250 | La API completa por HTTP con PostgreSQL real, incluida la matriz de permisos por rol |
+| `Citas.Domain.Tests` | 243 | Reglas del dominio, sin base de datos |
+| `Citas.Application.Tests` | 153 | Casos de uso con repositorios falsos |
+| `Citas.Architecture.Tests` | 10 | Reglas de dependencia entre capas, ningún secreto en archivos versionados y que la imagen y el compose no enciendan `X-Forwarded-For` |
+| `Citas.Infrastructure.Tests` | 93 | EF Core y las restricciones contra PostgreSQL real |
+| `Citas.Api.Tests` | 295 | La API completa por HTTP con PostgreSQL real, incluida la matriz de permisos por rol |
 
-Cobertura de `src/` (sin pruebas, migraciones ni código generado): 99 % de líneas (1718 de 1734) y 94,6 % de ramas (462 de 488).
+Cobertura de `src/` (sin pruebas, migraciones ni código generado): 98,8 % de líneas (1870 de 1891) y 94,4 % de ramas (527 de 558).
 
 ## Decisiones
 
@@ -258,7 +258,7 @@ Citas API is a REST API to book appointments at a clinic, built with .NET 10 and
 
 The code follows Clean Architecture in four projects, and architecture tests fail the build if a layer depends on one it should not. Security uses JWT with three staff roles and per-resource permissions. Errors are RFC 9457 problem details with a stable `code` field.
 
-To run it: copy `.env.example` to `.env`, fill in the three values (`openssl rand -base64 48` for the signing key), then `docker compose up -d --build` and open http://localhost:8080/docs. Sign in as `admin@demo.local` with the password you set in `DEMO_USERS_PASSWORD`. Tests need Docker (Testcontainers). The decision records are in `docs/adr`, in Spanish.
+To run it: copy `.env.example` to `.env`, fill in the three values (`openssl rand -base64 48` for the signing key), then `docker compose up -d --build` and open http://localhost:8080/docs. Sign in as `admin@demo.local` with the password you set in `DEMO_USERS_PASSWORD`. For a real deployment, set `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` to create the first administrator, who then creates the other users with `POST /api/v1/staff-users`. Tests need Docker (Testcontainers). The decision records are in `docs/adr`, in Spanish.
 
 ## Licencia y autor
 
