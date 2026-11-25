@@ -68,7 +68,9 @@ public sealed class Appointment
             return Result.Failure(AppointmentErrors.NotScheduled);
         }
 
-        if (string.IsNullOrWhiteSpace(reason) || reason.Length < 3 || reason.Length > 250)
+        // Validate the trimmed text: "  ab  " is still a two-letter reason.
+        string? trimmed = reason?.Trim();
+        if (string.IsNullOrEmpty(trimmed) || trimmed.Length < 3 || trimmed.Length > 250)
         {
             return Result.Failure(AppointmentErrors.InvalidCancellationReason);
         }
@@ -86,7 +88,7 @@ public sealed class Appointment
         }
 
         Status = AppointmentStatus.Cancelled;
-        CancellationReason = reason;
+        CancellationReason = trimmed;
         CancelledAt = now;
         return Result.Success();
     }

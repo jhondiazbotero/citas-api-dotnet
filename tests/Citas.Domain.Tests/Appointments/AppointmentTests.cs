@@ -178,6 +178,24 @@ public class AppointmentTests
     }
 
     [Fact]
+    public void Cancel_ReasonShortAfterTrimming_FailsWithInvalidCancellationReason()
+    {
+        var result = NewAppointment().Cancel("  ab  ", CreatedAt, byClinic: false);
+
+        Assert.Equal(AppointmentErrors.InvalidCancellationReason, result.Error);
+    }
+
+    [Fact]
+    public void Cancel_ReasonWithSurroundingSpaces_IsStoredTrimmed()
+    {
+        var appointment = NewAppointment();
+
+        appointment.Cancel("  Travel  ", CreatedAt, byClinic: false);
+
+        Assert.Equal("Travel", appointment.CancellationReason);
+    }
+
+    [Fact]
     public void Cancel_ReasonWith250Characters_Succeeds()
     {
         Assert.True(NewAppointment().Cancel(new string('a', 250), CreatedAt, byClinic: false).IsSuccess);
