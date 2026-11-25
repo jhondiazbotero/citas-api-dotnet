@@ -11,5 +11,6 @@
     <Project Path="tests/Citas.Architecture.Tests/Citas.Architecture.Tests.csproj" />
     <Project Path="tests/Citas.Domain.Tests/Citas.Domain.Tests.csproj" />
     <Project Path="tests/Citas.Infrastructure.Tests/Citas.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Citas.Testing/Citas.Testing.csproj" />
   </Folder>
 </Solution>

@@ -1,3 +1,4 @@
+using Citas.Testing;
 using Citas.Domain.Appointments;
 using Citas.Domain.Common;
 using Citas.Domain.Errors;

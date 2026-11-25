@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Testcontainers.PostgreSql;
 
-namespace Citas.Infrastructure.Tests.Support;
+namespace Citas.Testing;
 
 /// <summary>
 /// One real PostgreSQL container shared by every test of the collection. The REAL migrations run once on a template
@@ -54,10 +54,4 @@ public sealed class PostgresFixture : IAsyncLifetime
         await using var command = new NpgsqlCommand(sql, connection);
         await command.ExecuteNonQueryAsync();
     }
-}
-
-[CollectionDefinition(Name)]
-public sealed class PostgresCollection : ICollectionFixture<PostgresFixture>
-{
-    public const string Name = "postgres";
 }

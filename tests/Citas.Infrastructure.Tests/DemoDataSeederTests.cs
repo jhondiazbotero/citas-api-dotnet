@@ -1,3 +1,4 @@
+using Citas.Testing;
 using Citas.Application.Abstractions;
 using Citas.Domain.Appointments;
 using Citas.Infrastructure.Persistence;

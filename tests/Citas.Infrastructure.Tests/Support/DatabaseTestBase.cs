@@ -1,3 +1,4 @@
+using Citas.Testing;
 using Citas.Infrastructure.Persistence;
 
 namespace Citas.Infrastructure.Tests.Support;

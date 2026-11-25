@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <!-- Shared by the integration test projects: one real PostgreSQL container per test run, one database per test. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Citas.Infrastructure/Citas.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
