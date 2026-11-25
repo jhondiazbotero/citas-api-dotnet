@@ -106,6 +106,7 @@ Todos cuelgan de `/api/v1`. La documentación interactiva está en `/docs`. «Pe
 | POST | `/auth/token` | Cualquiera (5 intentos por minuto por dirección) |
 | POST | `/patients` | Admin o Reception |
 | GET | `/patients/{id}` | Admin o Reception |
+| GET | `/professionals` | Cualquiera, sin sesión (solo `id`, `fullName` y `specialty` de los activos, por nombre) |
 | POST | `/professionals` | Admin |
 | GET | `/professionals/{id}` | Admin o Reception, o el mismo profesional |
 | PUT | `/professionals/{id}/working-hours` | Admin |

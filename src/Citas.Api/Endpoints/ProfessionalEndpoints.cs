@@ -26,6 +26,13 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
+        group.MapGet("/", ListAsync)
+            .AllowAnonymous()
+            .WithName("ListProfessionals")
+            .WithSummary("List the active professionals")
+            .WithDescription("Public list of the active professionals, by name: only `id`, `fullName` and `specialty`, so a visitor can find the id to ask for free times. No schedules and no inactive professionals.")
+            .Produces<IReadOnlyList<ProfessionalSummaryResponse>>();
+
         group.MapGet("/{id}", GetAsync)
             .RequireAccess(Policies.OwnProfessional)
             .WithName(GetByIdRoute)
@@ -84,6 +91,11 @@ internal static class ProfessionalEndpoints
             new RegisterProfessionalCommand(request.FullName, request.Specialty, request.WorkingHours), cancellationToken);
         return result.ToCreated(GetByIdRoute, professional => new { id = professional.Id });
     }
+
+    private static async Task<IResult> ListAsync(
+        ListActiveProfessionalsHandler handler,
+        CancellationToken cancellationToken) =>
+        (await handler.HandleAsync(cancellationToken)).ToOk();
 
     private static async Task<IResult> GetAsync(
         [FromRoute, Description("Professional id.")] Guid id,

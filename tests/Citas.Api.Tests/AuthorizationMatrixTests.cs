@@ -40,6 +40,7 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
     [
         new("POST professionals", HttpMethod.Post, _ => $"{V1}/professionals",
             _ => new { fullName = "Dr. Nuevo Prueba", specialty = "Pediatría", workingHours = Hours() }, HttpStatusCode.Created, AdminOnly),
+        new("GET professionals", HttpMethod.Get, _ => $"{V1}/professionals", _ => null, HttpStatusCode.OK, Everybody),
         new("GET professionals/{id}", HttpMethod.Get, i => $"{V1}/professionals/{i.Professional}", _ => null, HttpStatusCode.OK, OwnOrFrontDesk),
         new("PUT professionals/{id}/working-hours", HttpMethod.Put, i => $"{V1}/professionals/{i.Professional}/working-hours",
             _ => new { workingHours = Hours() }, HttpStatusCode.OK, AdminOnly),
@@ -80,7 +81,7 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
     public void TheMatrixCoversEveryRouteOfTheApi()
     {
         // Keep this list and the OpenAPI document in step: a new endpoint must get a row in the matrix.
-        Assert.Equal(14, Cases.Length);
+        Assert.Equal(15, Cases.Length);
         Assert.Equal(Cases.Length, Cases.Select(c => c.Name).Distinct().Count());
     }
 
@@ -339,6 +340,12 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
             .Where(e => e.Metadata.OfType<Microsoft.AspNetCore.Authorization.IAllowAnonymous>().Any())
             .Select(e => e.RoutePattern.RawText!)
             .Order()];
-        Assert.Equal(["/api/v{version:apiVersion}/auth/token", "/api/v{version:apiVersion}/professionals/{id}/available-slots"], anonymous);
+        Assert.Equal(
+            [
+                "/api/v{version:apiVersion}/auth/token",
+                "/api/v{version:apiVersion}/professionals/",
+                "/api/v{version:apiVersion}/professionals/{id}/available-slots",
+            ],
+            anonymous);
     }
 }

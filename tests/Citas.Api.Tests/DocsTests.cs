@@ -79,7 +79,9 @@ public class DocsTests(PostgresFixture postgres) : ApiTestBase(postgres)
                 Assert.False(string.IsNullOrWhiteSpace(operation.Value.GetProperty("summary").GetString()), where);
                 Assert.False(string.IsNullOrWhiteSpace(operation.Value.GetProperty("description").GetString()), where);
                 JsonElement responses = operation.Value.GetProperty("responses");
-                Assert.True(responses.TryGetProperty("404", out _) || responses.TryGetProperty("400", out _), where);
+                // The public list has no input to reject and nothing to look up: its only failure is the rate limit.
+                bool listsEverybody = where == "GET /api/v1/professionals";
+                Assert.True(responses.TryGetProperty("404", out _) || responses.TryGetProperty("400", out _) || listsEverybody, where);
             }
         }
     }
@@ -173,7 +175,7 @@ public class DocsSecurityTests(PostgresFixture postgres) : ApiTestBase(postgres)
     public async Task OpenApi_ProtectedOperationsRequireTheScheme_AndPublicOnesDoNot()
     {
         JsonElement document = await OpenApiAsync();
-        string[] publicOperations = ["post /api/v1/auth/token", "get /api/v1/professionals/{id}/available-slots"];
+        string[] publicOperations = ["post /api/v1/auth/token", "get /api/v1/professionals", "get /api/v1/professionals/{id}/available-slots"];
 
         foreach (JsonProperty path in document.GetProperty("paths").EnumerateObject())
         {
@@ -204,6 +206,7 @@ public class DocsSecurityTests(PostgresFixture postgres) : ApiTestBase(postgres)
 
         Assert.Contains("Public", access["post /api/v1/auth/token"], StringComparison.Ordinal);
         Assert.Contains("Public", access["get /api/v1/professionals/{id}/available-slots"], StringComparison.Ordinal);
+        Assert.Contains("Public", access["get /api/v1/professionals"], StringComparison.Ordinal);
         Assert.EndsWith("Admin.", access["post /api/v1/professionals"], StringComparison.Ordinal);
         Assert.EndsWith("Admin or Reception.", access["post /api/v1/patients"], StringComparison.Ordinal);
         Assert.Contains("any other professional gets 403", access["get /api/v1/professionals/{id}/agenda"], StringComparison.Ordinal);

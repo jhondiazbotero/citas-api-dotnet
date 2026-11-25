@@ -10,5 +10,8 @@ public sealed class ProfessionalRepository(CitasDbContext db) : IProfessionalRep
     public Task<Professional?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
         db.Professionals.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
+    public async Task<IReadOnlyList<Professional>> ListActiveAsync(CancellationToken cancellationToken) =>
+        await db.Professionals.AsNoTracking().Where(p => p.IsActive).ToListAsync(cancellationToken);
+
     public void Add(Professional professional) => db.Professionals.Add(professional);
 }

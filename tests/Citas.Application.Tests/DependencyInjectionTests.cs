@@ -15,7 +15,7 @@ public class DependencyInjectionTests
     [
         nameof(RegisterPatientHandler), nameof(GetPatientHandler),
         nameof(RegisterProfessionalHandler), nameof(SetWorkingHoursHandler),
-        nameof(DeactivateProfessionalHandler), nameof(GetProfessionalHandler),
+        nameof(DeactivateProfessionalHandler), nameof(GetProfessionalHandler), nameof(ListActiveProfessionalsHandler),
         nameof(ScheduleAppointmentHandler), nameof(RescheduleAppointmentHandler),
         nameof(CancelAppointmentHandler), nameof(CompleteAppointmentHandler), nameof(MarkNoShowHandler),
         nameof(GetAppointmentHandler), nameof(GetProfessionalAgendaHandler), nameof(GetAvailableSlotsHandler),
