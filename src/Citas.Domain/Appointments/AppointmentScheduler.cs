@@ -74,6 +74,25 @@ public static class AppointmentScheduler
         return Result.Success();
     }
 
+    /// <summary>
+    /// Whether a professional could take a new appointment in this range right now: same rules as <see cref="Schedule"/>
+    /// (lead time, active, working hours, no overlap with the professional's appointments), without needing a patient.
+    /// Used to list free slots without copying the rules.
+    /// </summary>
+    public static Result CheckSlot(
+        Professional professional,
+        TimeRange range,
+        IEnumerable<Appointment> existingAppointments,
+        DateTime now) =>
+        CheckBookingRules(
+            professional.Id,
+            Guid.Empty,
+            professional,
+            range,
+            existingAppointments.Where(a => a.ProfessionalId == professional.Id),
+            ignoredAppointmentId: null,
+            now);
+
     private static Result CheckBookingRules(
         Guid professionalId,
         Guid patientId,

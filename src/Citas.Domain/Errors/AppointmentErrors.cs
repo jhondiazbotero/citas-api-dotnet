@@ -42,4 +42,7 @@ public static class AppointmentErrors
 
     public static readonly Error ProfessionalMismatch =
         new("Appointment.ProfessionalMismatch", "The professional does not own this appointment.");
+
+    public static readonly Error NotFound =
+        new("Appointment.NotFound", "The appointment does not exist.");
 }

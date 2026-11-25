@@ -524,4 +524,87 @@ public class AppointmentSchedulerTests
 
         Assert.Equal(AppointmentErrors.ProfessionalMismatch, result.Error);
     }
+
+    // ---------- CheckSlot: same rules as Schedule, no patient needed ----------
+
+    [Fact]
+    public void CheckSlot_FreeSlotInsideWorkingHours_Succeeds()
+    {
+        var professional = ProfessionalWorking(DayOfWeek.Wednesday, new TimeOnly(9, 0), new TimeOnly(17, 0));
+
+        var result = AppointmentScheduler.CheckSlot(professional, Range(At(2, 10, 0)), [], Now);
+
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void CheckSlot_LessThanAnHourAhead_FailsWithTooSoon()
+    {
+        var result = AppointmentScheduler.CheckSlot(AlwaysAvailable(), Range(At(1, 8, 45)), [], Now);
+
+        Assert.Equal(AppointmentErrors.TooSoon, result.Error);
+    }
+
+    [Fact]
+    public void CheckSlot_InThePast_FailsWithInThePast()
+    {
+        var result = AppointmentScheduler.CheckSlot(AlwaysAvailable(), Range(At(1, 7, 0)), [], Now);
+
+        Assert.Equal(AppointmentErrors.InThePast, result.Error);
+    }
+
+    [Fact]
+    public void CheckSlot_OutsideWorkingHours_FailsWithOutsideWorkingHours()
+    {
+        var professional = ProfessionalWorking(DayOfWeek.Wednesday, new TimeOnly(9, 0), new TimeOnly(12, 0));
+
+        var result = AppointmentScheduler.CheckSlot(professional, Range(At(2, 11, 45)), [], Now);
+
+        Assert.Equal(AppointmentErrors.OutsideWorkingHours, result.Error);
+    }
+
+    [Fact]
+    public void CheckSlot_InactiveProfessional_FailsWithInactive()
+    {
+        var professional = AlwaysAvailable();
+        professional.Deactivate();
+
+        var result = AppointmentScheduler.CheckSlot(professional, Range(At(2, 10, 0)), [], Now);
+
+        Assert.Equal(ProfessionalErrors.Inactive, result.Error);
+    }
+
+    [Fact]
+    public void CheckSlot_OverlapsScheduledAppointment_FailsWithOverlap()
+    {
+        var professional = AlwaysAvailable();
+        var other = Existing(professional, NewPatient(), At(2, 10, 0));
+
+        var result = AppointmentScheduler.CheckSlot(professional, Range(At(2, 10, 15)), [other], Now);
+
+        Assert.Equal(AppointmentErrors.Overlap, result.Error);
+    }
+
+    [Fact]
+    public void CheckSlot_OverlapsCancelledAppointment_Succeeds()
+    {
+        var professional = AlwaysAvailable();
+        var other = Cancelled(Existing(professional, NewPatient(), At(2, 10, 0)));
+
+        var result = AppointmentScheduler.CheckSlot(professional, Range(At(2, 10, 15)), [other], Now);
+
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void CheckSlot_OverlapsAnotherProfessionalsAppointment_Succeeds()
+    {
+        var professional = AlwaysAvailable();
+        var someoneElse = AlwaysAvailable();
+        var other = Existing(someoneElse, NewPatient(), At(2, 10, 0));
+
+        var result = AppointmentScheduler.CheckSlot(professional, Range(At(2, 10, 0)), [other], Now);
+
+        Assert.True(result.IsSuccess);
+    }
 }

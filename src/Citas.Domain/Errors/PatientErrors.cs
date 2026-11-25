@@ -12,4 +12,10 @@ public static class PatientErrors
 
     public static readonly Error InvalidPhone =
         new("Patient.InvalidPhone", "Phone must be 7 to 15 digits.");
+
+    public static readonly Error DuplicateDocument =
+        new("Patient.DuplicateDocument", "A patient with this document number already exists.");
+
+    public static readonly Error NotFound =
+        new("Patient.NotFound", "The patient does not exist.");
 }

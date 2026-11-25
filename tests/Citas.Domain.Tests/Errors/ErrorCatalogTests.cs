@@ -38,4 +38,13 @@ public class ErrorCatalogTests
             Assert.False(string.IsNullOrWhiteSpace(error.Message));
         }
     }
+
+    [Fact]
+    public void NotFoundAndDuplicateErrors_HaveTheExpectedCodes()
+    {
+        Assert.Equal("Professional.NotFound", ProfessionalErrors.NotFound.Code);
+        Assert.Equal("Patient.NotFound", PatientErrors.NotFound.Code);
+        Assert.Equal("Appointment.NotFound", AppointmentErrors.NotFound.Code);
+        Assert.Equal("Patient.DuplicateDocument", PatientErrors.DuplicateDocument.Code);
+    }
 }

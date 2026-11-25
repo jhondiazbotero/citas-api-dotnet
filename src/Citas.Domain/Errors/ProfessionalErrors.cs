@@ -21,4 +21,7 @@ public static class ProfessionalErrors
 
     public static readonly Error Inactive =
         new("Professional.Inactive", "The professional is not active.");
+
+    public static readonly Error NotFound =
+        new("Professional.NotFound", "The professional does not exist.");
 }
