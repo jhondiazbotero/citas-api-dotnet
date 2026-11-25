@@ -1,3 +1,7 @@
+using System.Security.Cryptography;
+using Citas.Application.Abstractions;
+using Citas.Domain.Staff;
+using Citas.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -21,12 +25,44 @@ public sealed class CitasApiFactory(
 
     public FakeTimeProvider Time { get; } = new(StartOfTime);
 
+    /// <summary>Generated for each factory: no key is written anywhere.</summary>
+    public string SigningKey { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
+
+    /// <summary>The issuer of the API itself, so the tests sign tokens exactly like the real login does (and with the fake clock).</summary>
+    public string TokenFor(StaffRole role, Guid? professionalId = null)
+    {
+        var user = StaffUser.Create($"{role}@tests.local", "hash", role, professionalId).Value;
+        return Services.GetRequiredService<ITokenIssuer>().Issue(user).Value;
+    }
+
+    /// <summary>Inserts a user straight into the database, with a real hash of the password.</summary>
+    public async Task<StaffUser> AddUserAsync(
+        string email,
+        string password,
+        StaffRole role = StaffRole.Reception,
+        Guid? professionalId = null,
+        bool active = true)
+    {
+        await using AsyncServiceScope scope = Services.CreateAsyncScope();
+        var user = StaffUser.Create(email, scope.ServiceProvider.GetRequiredService<IPasswordHasher>().Hash(password), role, professionalId).Value;
+        if (!active)
+        {
+            user.Deactivate();
+        }
+
+        var db = scope.ServiceProvider.GetRequiredService<CitasDbContext>();
+        db.StaffUsers.Add(user);
+        await db.SaveChangesAsync();
+        return user;
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Production");
         builder.UseSetting("ConnectionStrings:Citas", connectionString);
         builder.UseSetting("Database:MigrateOnStartup", "false");
         builder.UseSetting("Demo:SeedData", "false");
+        builder.UseSetting("Jwt:SigningKey", SigningKey);
 
         foreach ((string key, string value) in settings ?? new Dictionary<string, string>())
         {

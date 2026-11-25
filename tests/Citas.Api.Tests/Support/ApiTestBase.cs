@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Net.Http.Headers;
+using Citas.Domain.Staff;
 using Citas.Testing;
 
 namespace Citas.Api.Tests.Support;
@@ -16,7 +18,11 @@ public abstract class ApiTestBase(PostgresFixture postgres) : IAsyncLifetime
 
     protected CitasApiFactory Factory { get; private set; } = null!;
 
+    /// <summary>Signs every request as an administrator (a fresh token each time, so moving the fake clock never expires it).</summary>
     protected HttpClient Client { get; private set; } = null!;
+
+    /// <summary>No token at all.</summary>
+    protected HttpClient Anonymous { get; private set; } = null!;
 
     protected CancellationToken Cancellation => TestContext.Current.CancellationToken;
 
@@ -27,14 +33,29 @@ public abstract class ApiTestBase(PostgresFixture postgres) : IAsyncLifetime
     {
         _connectionString = await postgres.CreateDatabaseAsync();
         Factory = CreateFactory(_connectionString);
-        Client = Factory.CreateClient();
+        Anonymous = Factory.CreateClient();
+        Client = ClientAs(StaffRole.Admin);
     }
 
     public async ValueTask DisposeAsync()
     {
         Client.Dispose();
+        Anonymous.Dispose();
         await Factory.DisposeAsync();
         await postgres.DropDatabaseAsync(_connectionString);
+    }
+
+    /// <summary>A client whose requests carry a token of that role, minted by the API itself at the moment of sending.</summary>
+    protected HttpClient ClientAs(StaffRole role, Guid? professionalId = null) =>
+        Factory.CreateDefaultClient(new AutoTokenHandler(Factory, role, professionalId));
+
+    private sealed class AutoTokenHandler(CitasApiFactory factory, StaffRole role, Guid? professionalId) : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", factory.TokenFor(role, professionalId));
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 
     protected static string Local(int day, int hour, int minute = 0) => $"2026-12-{day:00}T{hour:00}:{minute:00}:00";
