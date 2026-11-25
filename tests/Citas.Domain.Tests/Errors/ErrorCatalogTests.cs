@@ -47,5 +47,7 @@ public class ErrorCatalogTests
         Assert.Equal("Appointment.NotFound", AppointmentErrors.NotFound.Code);
         Assert.Equal("Patient.DuplicateDocument", PatientErrors.DuplicateDocument.Code);
         Assert.Equal("TimeRange.OutOfRange", TimeRangeErrors.OutOfRange.Code);
+        Assert.Equal("Appointment.ConcurrencyConflict", AppointmentErrors.ConcurrencyConflict.Code);
+        Assert.Contains("changed", AppointmentErrors.ConcurrencyConflict.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

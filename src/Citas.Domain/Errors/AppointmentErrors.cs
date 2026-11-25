@@ -45,4 +45,7 @@ public static class AppointmentErrors
 
     public static readonly Error NotFound =
         new("Appointment.NotFound", "The appointment does not exist.");
+
+    public static readonly Error ConcurrencyConflict =
+        new("Appointment.ConcurrencyConflict", "The appointment was changed by someone else. Reload it and try again.");
 }
