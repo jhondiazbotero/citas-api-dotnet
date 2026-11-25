@@ -113,6 +113,28 @@ public class TimeRangeTests
         Assert.True(TimeRange.Create(At(23, 30), TimeSpan.FromMinutes(15)).IsSuccess);
     }
 
+    [Theory]
+    [InlineData(23, 45, 15)]
+    [InlineData(23, 30, 120)]
+    [InlineData(23, 0, 60)]
+    public void Create_StartNearDateTimeMaxValue_FailsWithOutOfRangeInsteadOfThrowing(int hour, int minute, int durationMinutes)
+    {
+        var start = new DateTime(9999, 12, 31, hour, minute, 0, DateTimeKind.Unspecified);
+
+        var result = TimeRange.Create(start, TimeSpan.FromMinutes(durationMinutes));
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(TimeRangeErrors.OutOfRange, result.Error);
+    }
+
+    [Fact]
+    public void Create_LastQuarterHourThatStillFitsBeforeMaxValue_Succeeds()
+    {
+        var start = new DateTime(9999, 12, 31, 23, 30, 0, DateTimeKind.Unspecified);
+
+        Assert.True(TimeRange.Create(start, TimeSpan.FromMinutes(15)).IsSuccess);
+    }
+
     [Fact]
     public void Overlaps_EndsExactlyWhenOtherStarts_IsFalse()
     {

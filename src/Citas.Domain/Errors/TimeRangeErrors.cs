@@ -12,4 +12,7 @@ public static class TimeRangeErrors
 
     public static readonly Error CrossesMidnight =
         new("TimeRange.CrossesMidnight", "Start and end must be on the same day.");
+
+    public static readonly Error OutOfRange =
+        new("TimeRange.OutOfRange", "Start and end must be representable dates.");
 }

@@ -40,6 +40,11 @@ public sealed record TimeRange
             return TimeRangeErrors.InvalidStart;
         }
 
+        if (DateTime.MaxValue - start < duration)
+        {
+            return TimeRangeErrors.OutOfRange;
+        }
+
         DateTime end = start + duration;
         if (end.Date != start.Date)
         {
