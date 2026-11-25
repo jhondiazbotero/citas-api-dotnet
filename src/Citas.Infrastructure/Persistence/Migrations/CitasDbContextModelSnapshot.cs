@@ -158,6 +158,56 @@ namespace Citas.Infrastructure.Persistence.Migrations
                     b.ToTable("professionals", (string)null);
                 });
 
+            modelBuilder.Entity("Citas.Domain.Staff.StaffUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<Guid?>("ProfessionalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("professional_id");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id")
+                        .HasName("pk_staff_users");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_staff_users_email");
+
+                    b.HasIndex("ProfessionalId")
+                        .HasDatabaseName("ix_staff_users_professional_id");
+
+                    b.ToTable("staff_users", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_staff_users_professional_link", "(role = 'Professional') = (professional_id IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_staff_users_role", "role IN ('Admin', 'Reception', 'Professional')");
+                        });
+                });
+
             modelBuilder.Entity("Citas.Domain.Appointments.Appointment", b =>
                 {
                     b.HasOne("Citas.Domain.Patients.Patient", null)
@@ -217,6 +267,15 @@ namespace Citas.Infrastructure.Persistence.Migrations
                         });
 
                     b.Navigation("WorkingHours");
+                });
+
+            modelBuilder.Entity("Citas.Domain.Staff.StaffUser", b =>
+                {
+                    b.HasOne("Citas.Domain.Professionals.Professional", null)
+                        .WithMany()
+                        .HasForeignKey("ProfessionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_staff_users_professionals_professional_id");
                 });
 #pragma warning restore 612, 618
         }

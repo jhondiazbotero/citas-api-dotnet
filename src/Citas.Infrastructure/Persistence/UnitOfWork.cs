@@ -36,6 +36,7 @@ public sealed class UnitOfWork(CitasDbContext db) : IUnitOfWork
                 (PostgresErrorCodes.ExclusionViolation, ConstraintNames.ProfessionalOverlap) => AppointmentErrors.Overlap,
                 (PostgresErrorCodes.ExclusionViolation, ConstraintNames.PatientOverlap) => AppointmentErrors.PatientOverlap,
                 (PostgresErrorCodes.UniqueViolation, ConstraintNames.PatientDocumentUnique) => PatientErrors.DuplicateDocument,
+                (PostgresErrorCodes.UniqueViolation, ConstraintNames.StaffUserEmailUnique) => StaffUserErrors.DuplicateEmail,
                 _ => null,
             }
             : null;

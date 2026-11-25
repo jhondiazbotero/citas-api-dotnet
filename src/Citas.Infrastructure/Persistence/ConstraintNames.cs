@@ -5,6 +5,8 @@ public static class ConstraintNames
 {
     public const string PatientDocumentUnique = "ix_patients_document_number";
 
+    public const string StaffUserEmailUnique = "ix_staff_users_email";
+
     public const string ProfessionalOverlap = "ex_appointments_professional_overlap";
 
     public const string PatientOverlap = "ex_appointments_patient_overlap";

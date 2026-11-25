@@ -16,6 +16,9 @@ public static class StaffUserErrors
     public static readonly Error ProfessionalNotAllowed =
         new("StaffUser.ProfessionalNotAllowed", "Only a user with the Professional role can be linked to a professional.");
 
+    public static readonly Error DuplicateEmail =
+        new("StaffUser.DuplicateEmail", "A user with this email already exists.");
+
     public static readonly Error InvalidPasswordHash =
         new("StaffUser.InvalidPasswordHash", "A password hash is required.");
 }
