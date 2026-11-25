@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+
+jobs:
+  build-test:
+    name: Build, test and coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET (version from global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: |
+          dotnet restore CitasApi.slnx
+          dotnet tool restore
+
+      # Warnings are errors (Directory.Build.props), so a warning fails this step.
+      - name: Build
+        run: dotnet build CitasApi.slnx -c Release --no-restore
+
+      # The integration tests start PostgreSQL with Testcontainers; ubuntu-latest ships Docker.
+      - name: Test with coverage
+        run: >
+          dotnet test CitasApi.slnx -c Release --no-build
+          --collect:"XPlat Code Coverage"
+          --settings coverage.runsettings
+          --results-directory ./TestResults
+          --logger "trx;LogFileName=results.trx"
+
+      - name: Coverage report
+        if: ${{ !cancelled() }}
+        run: |
+          dotnet reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -targetdir:coverage-report \
+            -reporttypes:"MarkdownSummaryGithub;TextSummary;HtmlInline_AzurePipelines;Cobertura"
+          {
+            echo "## Code coverage (src/)"
+            cat coverage-report/SummaryGithub.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+
+      - name: Upload coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            coverage-report
+            TestResults/**/coverage.cobertura.xml
+          if-no-files-found: warn
+
+  docker:
+    name: Docker image
+    needs: build-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      # Built to prove it builds; it is not pushed anywhere.
+      - name: Build the image
+        run: docker build --tag citas-api:ci .
