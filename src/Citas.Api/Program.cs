@@ -1,10 +1,22 @@
+using Citas.Api.Setup;
+using Citas.Application;
+using Citas.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddApiLogging();
+builder.Services
+    .AddApplication()
+    .AddInfrastructure(builder.Configuration)
+    .AddApi();
 
 var app = builder.Build();
 
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
+await app.RunStartupTasksAsync();
+app.UseApi();
+app.MapApi();
 
-app.Run();
+await app.RunAsync();
 
 // Exposed so WebApplicationFactory<Program> can start the API in tests.
 public partial class Program;
