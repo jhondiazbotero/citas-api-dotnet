@@ -9,6 +9,7 @@ La API tiene dos tipos de uso: el público consulta horarios libres sin identifi
 ## Decisión
 
 - Los usuarios son solo del personal, en la tabla `staff_users`, con tres roles: `Admin`, `Reception` y `Professional`. Un usuario con rol profesional queda vinculado a un profesional. Los pacientes no inician sesión.
+- Los usuarios de demo solo existen con los datos de demo. Fuera de la demo, el primer administrador sale de la configuración (`Bootstrap:AdminEmail` y `Bootstrap:AdminPassword`): al arrancar, si ambas están puestas y no existe ningún administrador, se crea ese. Es idempotente, valida la contraseña (de 12 a 256 caracteres) y nunca la escribe en un log. Los demás usuarios los crea un administrador con `POST /api/v1/staff-users`, que solo acepta los roles `Reception` y `Professional`: un administrador nuevo solo nace de la configuración, no de la API.
 - `POST /api/v1/auth/token` cambia email y contraseña por un token JWT firmado con HS256. Dura 60 minutos por defecto (configurable, máximo 24 horas). La llave sale de la configuración (`Jwt__SigningKey`), debe tener al menos 32 bytes y la aplicación no arranca sin ella.
 - Las contraseñas se guardan con `PasswordHasher` de `Microsoft.Extensions.Identity.Core`, detrás de un puerto propio. No uso ASP.NET Core Identity completo.
 - Las políticas se declaran por endpoint y los permisos por recurso (un profesional solo ve su agenda y sus citas) los decide un único manejador de autorización. Si el recurso no existe, la respuesta es la misma que si no fuera suyo, así que no sirve para descubrir ids.

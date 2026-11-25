@@ -159,6 +159,27 @@ dotnet run --project src/Citas.Api
 
 En Development la API aplica las migraciones y carga los datos de demo al arrancar. Queda en http://localhost:5108/docs.
 
+### Usuarios del personal fuera de la demo
+
+Los usuarios de demo (`admin@demo.local` y los demás) solo existen si activas los datos de demo. En un despliegue real no hay ninguno, así que el primer administrador sale de la configuración:
+
+```bash
+export Bootstrap__AdminEmail="dueno@tuclinica.example"
+export Bootstrap__AdminPassword="una-contraseña-de-12-o-mas-caracteres"
+```
+
+Con el compose, son `BOOTSTRAP_ADMIN_EMAIL` y `BOOTSTRAP_ADMIN_PASSWORD` en el `.env`. Al arrancar, si ambas variables están puestas y la base no tiene ningún administrador, la API crea ese usuario. Es seguro dejar las variables puestas: si ya hay un administrador, no hace nada. La contraseña tiene de 12 a 256 caracteres; si no cumple, la API no arranca y lo dice sin repetirla. La contraseña nunca se escribe en los logs. Cuando el administrador ya existe puedes quitar las dos variables.
+
+Con ese administrador inicias sesión (`POST /api/v1/auth/token`) y creas a los demás con `POST /api/v1/staff-users`. Solo un administrador puede hacerlo, y solo crea usuarios de recepción o de profesional:
+
+```bash
+curl -s http://localhost:8080/api/v1/staff-users \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"email":"recepcion@tuclinica.example","password":"otra-contraseña-larga","role":"Reception"}'
+```
+
+Para un usuario de profesional agrega `"role":"Professional"` y `"professionalId"` con el id de un profesional activo (sale de `GET /api/v1/professionals`). Un correo repetido da 409 con el código `StaffUser.DuplicateEmail`. La respuesta nunca incluye la contraseña ni su hash.
+
 ### Ejemplo con curl
 
 Pide el token (cambia la contraseña por la de `DEMO_USERS_PASSWORD`):

@@ -19,7 +19,7 @@ public static class DependencyInjection
 
     /// <summary>
     /// Registers the DbContext (connection string <c>ConnectionStrings:Citas</c>), the repositories, the password hasher, the unit of work,
-    /// the clinic clock (<c>Clinic:TimeZone</c>, default America/Bogota) and the demo data seeder.
+    /// the clinic clock (<c>Clinic:TimeZone</c>, default America/Bogota) and the demo data seeder and the first administrator seeder.
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DemoDataSeeder>();
+        services.AddScoped<BootstrapAdminSeeder>();
 
         return services;
     }

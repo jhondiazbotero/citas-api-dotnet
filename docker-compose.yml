@@ -32,6 +32,9 @@ services:
       ConnectionStrings__Citas: Host=db;Port=5432;Database=citas;Username=citas;Password=${POSTGRES_PASSWORD}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env (openssl rand -base64 48)}
       Demo__UsersPassword: ${DEMO_USERS_PASSWORD:?Set DEMO_USERS_PASSWORD in .env}
+      # Optional: the first administrator of a real deployment. Created only if there is no administrator yet.
+      Bootstrap__AdminEmail: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      Bootstrap__AdminPassword: ${BOOTSTRAP_ADMIN_PASSWORD:-}
       Database__MigrateOnStartup: "true"
       Demo__SeedData: "true"
     restart: unless-stopped
