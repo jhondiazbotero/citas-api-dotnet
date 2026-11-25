@@ -1,0 +1,40 @@
+# Local stack: PostgreSQL + the API. Every secret comes from the .env file (copy .env.example and fill it in).
+#   docker compose up -d --build     then     http://localhost:8080/docs
+name: citas-api
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: citas
+      POSTGRES_USER: citas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+    volumes:
+      - citas-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U citas -d citas"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Citas: Host=db;Port=5432;Database=citas;Username=citas;Password=${POSTGRES_PASSWORD}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env (openssl rand -base64 48)}
+      Demo__UsersPassword: ${DEMO_USERS_PASSWORD:?Set DEMO_USERS_PASSWORD in .env}
+      ForwardedHeaders__Enabled: "true"
+      Database__MigrateOnStartup: "true"
+      Demo__SeedData: "true"
+    restart: unless-stopped
+
+volumes:
+  citas-db:
