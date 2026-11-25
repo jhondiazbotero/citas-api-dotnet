@@ -1,5 +1,6 @@
 using Citas.Api.Contracts;
 using Citas.Api.Http;
+using Citas.Api.Security;
 using Citas.Application.Patients;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,6 +15,7 @@ internal static class PatientEndpoints
         RouteGroupBuilder group = api.MapGroup("/patients").WithTags("Patients");
 
         group.MapPost("/", RegisterAsync)
+            .RequireAccess(Policies.FrontDesk)
             .WithName("RegisterPatient")
             .WithSummary("Register a patient")
             .WithDescription("Creates a patient. The document number must be unique: a second patient with the same document is rejected with 409.")
@@ -22,6 +24,7 @@ internal static class PatientEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapGet("/{id}", GetAsync)
+            .RequireAccess(Policies.FrontDesk)
             .WithName(GetByIdRoute)
             .WithSummary("Get a patient")
             .WithDescription("Returns one patient by id.")

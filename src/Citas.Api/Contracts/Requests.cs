@@ -34,8 +34,13 @@ public sealed record RescheduleAppointmentRequest(
     [property: Description("New start in local clinic time, yyyy-MM-ddTHH:mm[:ss], without zone or offset.")] DateTime NewStart,
     [property: Description("Length in minutes: 15 to 120, in steps of 15.")] int DurationMinutes);
 
-[Description("Why an appointment is cancelled and who cancels it.")]
+[Description("Why an appointment is cancelled and on whose behalf.")]
 public sealed record CancelAppointmentRequest(
     [property: Description("Cancellation reason, 3 to 250 characters.")] string Reason,
-    [property: Description("True when the clinic cancels (allowed until the start); false when the patient does (24 hours ahead).")]
-    bool ByClinic = false);
+    [property: Description("True (the default) when the patient asks for it: the 24-hour rule applies. False when the clinic cancels: allowed until the start.")]
+    bool OnBehalfOfPatient = true);
+
+[Description("Credentials of a staff member.")]
+public sealed record LoginRequest(
+    [property: Description("Email of the staff user. Case does not matter.")] string Email,
+    [property: Description("Password.")] string Password);

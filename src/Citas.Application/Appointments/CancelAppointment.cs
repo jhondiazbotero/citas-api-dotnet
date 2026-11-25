@@ -10,7 +10,7 @@ using FluentValidation;
 
 namespace Citas.Application.Appointments;
 
-/// <summary><c>ByClinic</c> comes from the caller (later, from the user's role): the clinic can cancel up to the start, a patient needs 24 hours.</summary>
+/// <summary><c>ByClinic</c> comes from the caller (the API sets it from <c>onBehalfOfPatient</c>): the clinic can cancel up to the start, a patient needs 24 hours.</summary>
 public sealed record CancelAppointmentCommand(Guid AppointmentId, string Reason, bool ByClinic);
 
 public sealed class CancelAppointmentValidator : AbstractValidator<CancelAppointmentCommand>

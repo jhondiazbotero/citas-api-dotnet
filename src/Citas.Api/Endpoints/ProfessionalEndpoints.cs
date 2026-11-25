@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Citas.Api.Contracts;
 using Citas.Api.Http;
+using Citas.Api.Security;
 using Citas.Application.Appointments;
 using Citas.Application.Professionals;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ internal static class ProfessionalEndpoints
         RouteGroupBuilder group = api.MapGroup("/professionals").WithTags("Professionals");
 
         group.MapPost("/", RegisterAsync)
+            .RequireAccess(Policies.Admin)
             .WithName("RegisterProfessional")
             .WithSummary("Register a professional")
             .WithDescription("Creates a professional with the weekly windows in which they see patients (day of the week, from, to).")
@@ -25,6 +27,7 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapGet("/{id}", GetAsync)
+            .RequireAccess(Policies.AnyStaff)
             .WithName(GetByIdRoute)
             .WithSummary("Get a professional")
             .WithDescription("Returns one professional with the weekly working hours.")
@@ -33,6 +36,7 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPut("/{id}/working-hours", SetWorkingHoursAsync)
+            .RequireAccess(Policies.Admin)
             .WithName("SetWorkingHours")
             .WithSummary("Replace the working hours")
             .WithDescription("Replaces the whole weekly schedule. Appointments that were already booked are not touched.")
@@ -42,6 +46,7 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapPost("/{id}/deactivate", DeactivateAsync)
+            .RequireAccess(Policies.Admin)
             .WithName("DeactivateProfessional")
             .WithSummary("Deactivate a professional")
             .WithDescription("An inactive professional cannot receive new appointments. Repeating the call is harmless. Appointments already booked stay as they are.")
@@ -50,6 +55,7 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/agenda", GetAgendaAsync)
+            .RequireAccess(Policies.OwnAgenda)
             .WithName("GetProfessionalAgenda")
             .WithSummary("Agenda of a professional")
             .WithDescription("Appointments that start between `from` and `to`, both days included, ordered by start. At most 31 days.")
@@ -58,6 +64,7 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/available-slots", GetAvailableSlotsAsync)
+            .AllowAnonymous()
             .WithName("GetAvailableSlots")
             .WithSummary("Free start times of a day")
             .WithDescription("Start times (every quarter hour) at which an appointment of `durationMinutes` can be booked on `date`, using the same rules as booking: working hours, existing appointments and the one-hour notice. An inactive professional has none.")

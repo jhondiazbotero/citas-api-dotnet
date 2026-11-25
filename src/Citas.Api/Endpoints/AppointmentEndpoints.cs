@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Citas.Api.Contracts;
 using Citas.Api.Http;
+using Citas.Api.Security;
 using Citas.Application.Appointments;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ internal static class AppointmentEndpoints
         RouteGroupBuilder group = api.MapGroup("/appointments").WithTags("Appointments");
 
         group.MapPost("/", ScheduleAsync)
+            .RequireAccess(Policies.FrontDesk)
             .WithName("ScheduleAppointment")
             .WithSummary("Book an appointment")
             .WithDescription("Books an appointment if the professional is active and free, the time is inside their working hours, the patient has nothing else at that time and it starts at least one hour from now. Times are local clinic time, without zone or offset.")
@@ -25,6 +27,7 @@ internal static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapGet("/{id}", GetAsync)
+            .RequireAccess(Policies.FrontDesk)
             .WithName(GetByIdRoute)
             .WithSummary("Get an appointment")
             .WithDescription("Returns one appointment with its current state: Scheduled, Cancelled, Completed or NoShow.")
@@ -33,6 +36,7 @@ internal static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id}/reschedule", RescheduleAsync)
+            .RequireAccess(Policies.FrontDesk)
             .WithName("RescheduleAppointment")
             .WithSummary("Move an appointment")
             .WithDescription("Moves a scheduled appointment to a new time, with the same rules as booking. It needs at least 24 hours before the original start. The appointment may overlap its own previous time.")
@@ -43,9 +47,10 @@ internal static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapPost("/{id}/cancel", CancelAsync)
+            .RequireAccess(Policies.FrontDesk)
             .WithName("CancelAppointment")
             .WithSummary("Cancel an appointment")
-            .WithDescription("A patient must cancel at least 24 hours before the start; the clinic can cancel until the start (`byClinic: true`). A cancelled appointment frees its time.")
+            .WithDescription("With `onBehalfOfPatient: true` (the default) the patient cancels and must do it at least 24 hours before the start; with `false` the clinic cancels, allowed until the start. A cancelled appointment frees its time.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
@@ -53,6 +58,7 @@ internal static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapPost("/{id}/complete", CompleteAsync)
+            .RequireAccess(Policies.OwnAppointment)
             .WithName("CompleteAppointment")
             .WithSummary("Mark as attended")
             .WithDescription("Marks a scheduled appointment as completed. It must have already started.")
@@ -63,6 +69,7 @@ internal static class AppointmentEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapPost("/{id}/no-show", NoShowAsync)
+            .RequireAccess(Policies.OwnAppointment)
             .WithName("MarkAppointmentNoShow")
             .WithSummary("Mark as missed")
             .WithDescription("Marks a scheduled appointment as missed by the patient. It must have already started.")
@@ -105,7 +112,7 @@ internal static class AppointmentEndpoints
         CancelAppointmentRequest request,
         CancelAppointmentHandler handler,
         CancellationToken cancellationToken) =>
-        (await handler.HandleAsync(new CancelAppointmentCommand(id, request.Reason, request.ByClinic), cancellationToken)).ToNoContent();
+        (await handler.HandleAsync(new CancelAppointmentCommand(id, request.Reason, ByClinic: !request.OnBehalfOfPatient), cancellationToken)).ToNoContent();
 
     private static async Task<IResult> CompleteAsync(
         [FromRoute, Description("Appointment id.")] Guid id,
