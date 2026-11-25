@@ -12,6 +12,10 @@ public sealed class Appointment
 {
     private static readonly TimeSpan MinNoticeForPatientCancellation = TimeSpan.FromHours(24);
 
+    // Only for EF Core, which cannot bind the TimeRange value object through the constructor below.
+    // The persistence layer fills every property right after; domain code never calls it.
+    private Appointment() => TimeRange = null!;
+
     private Appointment(Guid professionalId, Guid patientId, TimeRange timeRange, string? reason, DateTime createdAt)
     {
         Id = Guid.NewGuid();
