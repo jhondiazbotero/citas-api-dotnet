@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Citas.Application.Abstractions;
 using Citas.Domain.Staff;
 using Microsoft.IdentityModel.JsonWebTokens;

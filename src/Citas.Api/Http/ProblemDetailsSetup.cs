@@ -1,5 +1,4 @@
 using Citas.Domain.Errors;
-using Microsoft.AspNetCore.Http;
 
 namespace Citas.Api.Http;
 

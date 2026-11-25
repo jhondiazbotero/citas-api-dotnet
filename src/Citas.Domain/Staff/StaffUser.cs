@@ -33,7 +33,10 @@ public sealed class StaffUser
     /// <summary>Trimmed and lower case, the form in which emails are stored and looked up. Null becomes an empty string.</summary>
     public static string NormalizeEmail(string? email) => (email ?? string.Empty).Trim().ToLowerInvariant();
 
+    /// <param name="email">Any case and surrounding spaces; it is stored trimmed and in lower case.</param>
     /// <param name="passwordHash">Already hashed: the domain never sees a plain password.</param>
+    /// <param name="role">Admin, Reception or Professional.</param>
+    /// <param name="professionalId">Required for a Professional and not allowed for any other role.</param>
     public static Result<StaffUser> Create(string? email, string? passwordHash, StaffRole role, Guid? professionalId = null)
     {
         string normalized = NormalizeEmail(email);

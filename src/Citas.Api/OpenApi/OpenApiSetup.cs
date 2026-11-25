@@ -5,7 +5,6 @@ using Citas.Application.Auth;
 using Citas.Application.Common;
 using Citas.Api.Security;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
 namespace Citas.Api.OpenApi;

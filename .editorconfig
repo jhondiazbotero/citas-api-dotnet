@@ -149,6 +149,13 @@ csharp_style_unused_value_expression_statement_preference = discard_variable:sil
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace:silent
 
+# An unused using is an error (warnings are errors, see Directory.Build.props)
+dotnet_diagnostic.IDE0005.severity = warning
+
+# Migrations are written by "dotnet ef migrations add": the tool decides their usings, so the analyzers skip them.
+[src/Citas.Infrastructure/Persistence/Migrations/*.cs]
+generated_code = true
+
 #### C# Formatting Rules ####
 
 # New line preferences

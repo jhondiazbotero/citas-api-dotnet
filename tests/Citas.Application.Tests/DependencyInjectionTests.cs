@@ -1,7 +1,6 @@
 using Citas.Application.Abstractions;
 using Citas.Application.Appointments;
 using Citas.Application.Auth;
-using Citas.Application.Common;
 using Citas.Application.Patients;
 using Citas.Application.Professionals;
 using Citas.Application.StaffUsers;

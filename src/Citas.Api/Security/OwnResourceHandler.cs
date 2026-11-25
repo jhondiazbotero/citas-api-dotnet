@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Citas.Application.Abstractions;
-using Citas.Domain.Appointments;
 using Citas.Domain.Staff;
 using Microsoft.AspNetCore.Authorization;
 

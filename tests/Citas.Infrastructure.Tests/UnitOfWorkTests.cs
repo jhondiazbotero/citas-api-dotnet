@@ -4,7 +4,6 @@ using Citas.Domain.Common;
 using Citas.Domain.Errors;
 using Citas.Domain.Patients;
 using Citas.Domain.Professionals;
-using Citas.Domain.ValueObjects;
 using Citas.Infrastructure.Persistence;
 using Citas.Infrastructure.Repositories;
 using Citas.Infrastructure.Tests.Support;

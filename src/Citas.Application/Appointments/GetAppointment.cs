@@ -3,8 +3,6 @@ using Citas.Application.Common;
 using Citas.Domain.Appointments;
 using Citas.Domain.Common;
 using Citas.Domain.Errors;
-using Citas.Domain.Professionals;
-using Citas.Domain.ValueObjects;
 using FluentValidation;
 
 namespace Citas.Application.Appointments;

@@ -4,7 +4,6 @@ using Citas.Api.Http;
 using Citas.Api.OpenApi;
 using Citas.Api.Security;
 using Citas.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Citas.Api.Setup;
