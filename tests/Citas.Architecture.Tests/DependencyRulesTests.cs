@@ -10,6 +10,7 @@ public class DependencyRulesTests
     private const string Infrastructure = "Citas.Infrastructure";
     private const string Api = "Citas.Api";
     private const string EntityFrameworkCore = "Microsoft.EntityFrameworkCore";
+    private const string Npgsql = "Npgsql";
     private const string AspNetCore = "Microsoft.AspNetCore";
 
     private static readonly Assembly DomainAssembly = Citas.Domain.AssemblyReference.Assembly;
@@ -25,6 +26,18 @@ public class DependencyRulesTests
 
         Assert.True(result.IsSuccessful, Describe(result));
         AssertNoReferences(DomainAssembly, Application, Infrastructure, Api);
+    }
+
+    [Fact]
+    public void Domain_should_not_depend_on_EntityFrameworkCore_or_Npgsql()
+    {
+        var result = Types.InAssembly(DomainAssembly)
+            .ShouldNot()
+            .HaveDependencyOnAny(EntityFrameworkCore, Npgsql)
+            .GetResult();
+
+        Assert.True(result.IsSuccessful, Describe(result));
+        AssertNoReferences(DomainAssembly, EntityFrameworkCore, Npgsql);
     }
 
     [Fact]
