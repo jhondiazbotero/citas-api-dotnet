@@ -1,4 +1,5 @@
 using Citas.Application.Common;
+using Citas.Domain.Appointments;
 using Citas.Domain.Patients;
 using Citas.Domain.Professionals;
 using Citas.Domain.ValueObjects;
@@ -32,4 +33,11 @@ public static class TestData
 
     public static Patient NewPatient(string document = "1234567") =>
         Patient.Create("Ana Gomez", document).Value;
+
+    /// <summary>An already booked appointment, created the day before "now" so any lead-time rule is met.</summary>
+    public static Appointment Book(Professional professional, Patient patient, DateTime start, int minutes = 30)
+    {
+        var result = AppointmentScheduler.Schedule(professional, patient, Range(start, minutes), null, [], At(1, 7, 0));
+        return result.Value;
+    }
 }
