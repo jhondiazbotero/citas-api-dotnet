@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Citas.Api.Endpoints;
+using Citas.Api.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -12,12 +13,18 @@ internal static class ApiPipeline
     public const string DocsEnabledKey = "Docs:Enabled";
     public const string DocsPath = "/docs";
 
-    /// <summary>Request log first (so it sees the final status), then the exception handler and the status pages that write problem details.</summary>
+    /// <summary>
+    /// Request log first (so it sees the final status), then the exception handler and the status pages that write problem details
+    /// (also for the empty 401 and 403 answers of authentication), the rate limiter, and who-you-are before what-you-may-do.
+    /// </summary>
     public static WebApplication UseApi(this WebApplication app)
     {
         app.UseSerilogRequestLogging(options => options.GetLevel = RequestLogLevel);
         app.UseExceptionHandler();
         app.UseStatusCodePages();
+        app.UseRateLimiter();
+        app.UseAuthentication();
+        app.UseAuthorization();
         return app;
     }
 
@@ -43,6 +50,7 @@ internal static class ApiPipeline
             .MapGroup("/api/v{version:apiVersion}")
             .HasApiVersion(new ApiVersion(1, 0));
 
+        v1.MapAuthEndpoints();
         v1.MapPatientEndpoints();
         v1.MapProfessionalEndpoints();
         v1.MapAppointmentEndpoints();
@@ -50,7 +58,7 @@ internal static class ApiPipeline
 
     private static void MapDocs(this WebApplication app)
     {
-        app.MapOpenApi().WithDocumentPerVersion();
+        app.MapOpenApi().WithDocumentPerVersion().AllowAnonymous();
         app.MapScalarApiReference(DocsPath, options =>
         {
             options.Title = "Citas API";
@@ -59,9 +67,10 @@ internal static class ApiPipeline
             options.Agent = new ScalarAgentOptions { Disabled = true };
             options.Mcp = new ScalarMcpOptions { Disabled = true };
             options.ShowDeveloperTools = DeveloperToolsVisibility.Never;
-        });
+            options.AddPreferredSecuritySchemes(OpenApiSetup.BearerScheme);
+        }).AllowAnonymous();
 
-        app.MapGet("/", () => Results.Redirect(DocsPath)).ExcludeFromDescription();
+        app.MapGet("/", () => Results.Redirect(DocsPath)).AllowAnonymous().ExcludeFromDescription();
     }
 
     // Health probes run every few seconds; keep them out of the log unless something goes wrong.

@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Asp.Versioning;
 using Citas.Api.Http;
 using Citas.Api.OpenApi;
+using Citas.Api.Security;
 using Citas.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -13,7 +14,7 @@ internal static class ApiServices
     public const string LiveTag = "live";
     public const string ReadyTag = "ready";
 
-    public static IServiceCollection AddApi(this IServiceCollection services)
+    public static IServiceCollection AddApi(this IServiceCollection services, IConfiguration configuration)
     {
         services.ConfigureHttpJsonOptions(options =>
         {
@@ -40,6 +41,8 @@ internal static class ApiServices
                 options.SubstituteApiVersionInUrl = true;
             })
             .AddOpenApi(options => options.AddCitasTransformers());
+
+        services.AddCitasSecurity(configuration);
 
         services
             .AddHealthChecks()

@@ -19,9 +19,10 @@ internal static class HealthEndpoints
         };
         var ready = new HealthCheckOptions { ResponseWriter = WriteAsync };
 
-        app.MapHealthChecks("/health/live", live);
-        app.MapHealthChecks("/health/ready", ready);
-        app.MapHealthChecks("/health", live);
+        // Orchestrators and load balancers call these without credentials.
+        app.MapHealthChecks("/health/live", live).AllowAnonymous();
+        app.MapHealthChecks("/health/ready", ready).AllowAnonymous();
+        app.MapHealthChecks("/health", live).AllowAnonymous();
     }
 
     private static Task WriteAsync(HttpContext context, HealthReport report)

@@ -1,3 +1,4 @@
+using Citas.Domain.Errors;
 using Microsoft.AspNetCore.Http;
 
 namespace Citas.Api.Http;
@@ -21,6 +22,8 @@ internal static class ProblemDetailsSetup
 
         problem.Extensions[ProblemResult.CodeExtension] = status switch
         {
+            StatusCodes.Status401Unauthorized => AuthErrors.Unauthorized.Code,
+            StatusCodes.Status403Forbidden => AuthErrors.Forbidden.Code,
             StatusCodes.Status404NotFound => "Http.NotFound",
             StatusCodes.Status405MethodNotAllowed => "Http.MethodNotAllowed",
             StatusCodes.Status415UnsupportedMediaType => "Request.UnsupportedMediaType",

@@ -1,7 +1,10 @@
 using System.Text.Json.Nodes;
 using Asp.Versioning.OpenApi;
 using Citas.Api.Contracts;
+using Citas.Application.Auth;
 using Citas.Application.Common;
+using Citas.Api.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
@@ -9,6 +12,8 @@ namespace Citas.Api.OpenApi;
 
 internal static class OpenApiSetup
 {
+    public const string BearerScheme = "Bearer";
+
     private const string Description = """
         API to book appointments in a clinic: professionals with weekly working hours, patients, and appointments that never overlap.
 
@@ -20,6 +25,11 @@ internal static class OpenApiSetup
         422 a business rule refuses the request, 500 unexpected (no details are exposed).
 
         **Versions.** The version is part of the URL: `/api/v1`.
+
+        **Sign in.** Staff users (Admin, Reception, Professional) call `POST /api/v1/auth/token` with email and password and get a
+        bearer token. Send it as `Authorization: Bearer <token>`; in this page use the Authentication panel. Each operation says
+        which role it needs under **Access**. 401 means no valid token, 403 means the role is not allowed, 429 means too many
+        sign-in attempts (5 per minute per address). Patients do not sign in.
         """;
 
     public static void AddCitasTransformers(this VersionedOpenApiOptions options)
@@ -28,12 +38,47 @@ internal static class OpenApiSetup
         {
             document.Info.Title = "Citas API";
             document.Info.Description = Description;
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>
+            {
+                [BearerScheme] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Description = "Access token from `POST /api/v1/auth/token`. Paste the token only, without the word Bearer.",
+                },
+            };
             document.Tags = new HashSet<OpenApiTag>
             {
+                new() { Name = "Auth", Description = "Sign in with email and password to get an access token." },
                 new() { Name = "Patients", Description = "People who book appointments." },
                 new() { Name = "Professionals", Description = "Who sees patients, their weekly hours, agenda and free slots." },
                 new() { Name = "Appointments", Description = "Book, move, cancel and close appointments." },
             };
+            return Task.CompletedTask;
+        });
+
+        options.Document.AddOperationTransformer((operation, context, _) =>
+        {
+            IList<object> metadata = context.Description.ActionDescriptor.EndpointMetadata;
+            bool anonymous = metadata.OfType<IAllowAnonymous>().Any();
+            IAuthorizeData? authorize = metadata.OfType<IAuthorizeData>().FirstOrDefault();
+
+            string access = anonymous
+                ? "Public: no token needed."
+                : $"Requires a bearer token. Role: {Policies.Describe(authorize?.Policy)}";
+            operation.Description = $"{operation.Description}\n\n**Access:** {access}";
+
+            if (!anonymous)
+            {
+                operation.Security ??= [];
+                operation.Security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference(BearerScheme, context.Document)] = [],
+                });
+            }
+
             return Task.CompletedTask;
         });
 
@@ -113,7 +158,18 @@ internal static class OpenApiSetup
         [typeof(CancelAppointmentRequest)] = () => new JsonObject
         {
             ["reason"] = "El paciente no puede asistir",
-            ["byClinic"] = false,
+            ["onBehalfOfPatient"] = true,
+        },
+        [typeof(LoginRequest)] = () => new JsonObject
+        {
+            ["email"] = "recepcion@demo.local",
+            ["password"] = "tu-contraseña",
+        },
+        [typeof(LoginResponse)] = () => new JsonObject
+        {
+            ["accessToken"] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            ["expiresAt"] = "2026-12-08T10:30:00+00:00",
+            ["role"] = "Reception",
         },
     };
 }

@@ -21,6 +21,11 @@ internal static class ErrorStatus
         ProfessionalErrors.InvalidSlot.Code,
         AppointmentErrors.ReasonTooLong.Code,
         AppointmentErrors.InvalidCancellationReason.Code,
+        StaffUserErrors.InvalidEmail.Code,
+        StaffUserErrors.InvalidRole.Code,
+        StaffUserErrors.ProfessionalRequired.Code,
+        StaffUserErrors.ProfessionalNotAllowed.Code,
+        StaffUserErrors.InvalidPasswordHash.Code,
     ];
 
     // The request is well formed but clashes with something that already exists or changed in the meantime.
@@ -30,12 +35,27 @@ internal static class ErrorStatus
         AppointmentErrors.PatientOverlap.Code,
         PatientErrors.DuplicateDocument.Code,
         AppointmentErrors.ConcurrencyConflict.Code,
+        StaffUserErrors.DuplicateEmail.Code,
     ];
 
-    /// <summary>404 for missing things, 400 for malformed input, 409 for clashes, 422 for any other business rule.</summary>
+    // Who you are and what you may do. 401: the caller did not prove who they are. 403: they did, but may not.
+    private static readonly Dictionary<string, int> Auth = new()
+    {
+        [AuthErrors.InvalidCredentials.Code] = StatusCodes.Status401Unauthorized,
+        [AuthErrors.Unauthorized.Code] = StatusCodes.Status401Unauthorized,
+        [AuthErrors.Forbidden.Code] = StatusCodes.Status403Forbidden,
+        [AuthErrors.TooManyAttempts.Code] = StatusCodes.Status429TooManyRequests,
+    };
+
+    /// <summary>401, 403 and 429 for the sign-in and access errors, 404 for missing things, 400 for malformed input, 409 for clashes, 422 for any other business rule.</summary>
     public static int For(Error error)
     {
         string code = error.Code;
+
+        if (Auth.TryGetValue(code, out int authStatus))
+        {
+            return authStatus;
+        }
 
         if (code == ValidationCode
             || code.StartsWith(TimeRangePrefix, StringComparison.Ordinal)
