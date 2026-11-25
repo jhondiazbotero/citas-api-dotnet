@@ -192,13 +192,72 @@ public class ProfessionalTests
     }
 
     [Fact]
-    public void IsAvailable_RangeSpanningTwoBackToBackSlots_IsFalse()
+    public void IsAvailable_RangeSpanningTwoBackToBackSlots_IsTrue()
     {
-        // Each slot is checked on its own: a range must fit entirely inside a single slot.
+        // 09:00-12:00 followed by 12:00-14:00 is one continuous stretch of work.
         var professional = NewProfessional();
         professional.SetWorkingHours([Slot(DayOfWeek.Wednesday, 9, 12), Slot(DayOfWeek.Wednesday, 12, 14)]);
 
+        Assert.True(professional.IsAvailable(Range(11, 30, 60)));
+    }
+
+    [Fact]
+    public void IsAvailable_BackToBackSlotsStoredOutOfOrder_IsTrue()
+    {
+        var professional = NewProfessional();
+        professional.SetWorkingHours([Slot(DayOfWeek.Wednesday, 12, 14), Slot(DayOfWeek.Wednesday, 9, 12)]);
+
+        Assert.True(professional.IsAvailable(Range(11, 30, 60)));
+    }
+
+    [Fact]
+    public void IsAvailable_ThreeChainedSlots_IsTrue()
+    {
+        var professional = NewProfessional();
+        professional.SetWorkingHours(
+            [Slot(DayOfWeek.Wednesday, 8, 10), Slot(DayOfWeek.Wednesday, 10, 12), Slot(DayOfWeek.Wednesday, 12, 14)]);
+
+        Assert.True(professional.IsAvailable(Range(9, 0, 120)));
+        Assert.True(professional.IsAvailable(Range(10, 30, 120)));
+    }
+
+    [Fact]
+    public void IsAvailable_RangeStartsInsideAndEndsPastTheChain_IsFalse()
+    {
+        var professional = NewProfessional();
+        professional.SetWorkingHours([Slot(DayOfWeek.Wednesday, 9, 12), Slot(DayOfWeek.Wednesday, 12, 14)]);
+
+        Assert.False(professional.IsAvailable(Range(13, 30, 60)));
+    }
+
+    [Fact]
+    public void IsAvailable_SlotsWithAGapBetweenThem_IsFalseAcrossTheGap()
+    {
+        var professional = NewProfessional();
+        professional.SetWorkingHours([Slot(DayOfWeek.Wednesday, 9, 12), Slot(DayOfWeek.Wednesday, 13, 14)]);
+
+        Assert.False(professional.IsAvailable(Range(11, 30, 120)));
+    }
+
+    [Fact]
+    public void IsAvailable_BackToBackSlotsOnDifferentDays_IsFalseAcrossThem()
+    {
+        // Tuesday 09:00-12:00 and Wednesday 12:00-14:00 are not contiguous: the day is part of the slot.
+        var professional = NewProfessional();
+        professional.SetWorkingHours([Slot(DayOfWeek.Tuesday, 9, 12), Slot(DayOfWeek.Wednesday, 12, 14)]);
+
         Assert.False(professional.IsAvailable(Range(11, 30, 60)));
+    }
+
+    [Fact]
+    public void IsAvailable_ChainingDoesNotChangeTheStoredSlots()
+    {
+        var professional = NewProfessional();
+        professional.SetWorkingHours([Slot(DayOfWeek.Wednesday, 9, 12), Slot(DayOfWeek.Wednesday, 12, 14)]);
+
+        professional.IsAvailable(Range(11, 30, 60));
+
+        Assert.Equal(2, professional.WorkingHours.Count);
     }
 
     [Fact]

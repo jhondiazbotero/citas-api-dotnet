@@ -68,6 +68,40 @@ public sealed class Professional
 
     public void Deactivate() => IsActive = false;
 
-    /// <summary>Active and the whole range fits inside one working slot.</summary>
-    public bool IsAvailable(TimeRange range) => IsActive && _workingHours.Any(slot => slot.Contains(range));
+    /// <summary>
+    /// Active and the whole range fits inside one stretch of work. Back to back slots on the same day
+    /// (08:00-12:00 and 12:00-16:00) count as one stretch; the stored slots are not changed.
+    /// </summary>
+    public bool IsAvailable(TimeRange range) => IsActive && FitsInAStretch(range);
+
+    private bool FitsInAStretch(TimeRange range)
+    {
+        TimeOnly start = TimeOnly.FromDateTime(range.Start);
+        TimeOnly end = TimeOnly.FromDateTime(range.End);
+
+        // Slots of one day never overlap (SetWorkingHours), so after sorting by start time a slot that begins
+        // exactly where the current stretch ends simply extends it.
+        TimeOnly stretchStart = default;
+        TimeOnly stretchEnd = default;
+        bool open = false;
+        foreach (WeeklySlot slot in _workingHours.Where(s => s.Day == range.Start.DayOfWeek).OrderBy(s => s.From))
+        {
+            if (open && slot.From == stretchEnd)
+            {
+                stretchEnd = slot.To;
+                continue;
+            }
+
+            if (open && start >= stretchStart && end <= stretchEnd)
+            {
+                return true;
+            }
+
+            stretchStart = slot.From;
+            stretchEnd = slot.To;
+            open = true;
+        }
+
+        return open && start >= stretchStart && end <= stretchEnd;
+    }
 }

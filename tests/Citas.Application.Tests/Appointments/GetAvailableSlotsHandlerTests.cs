@@ -135,6 +135,26 @@ public class GetAvailableSlotsHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_BackToBackWorkingSlots_OffersStartsThatCrossTheJoin()
+    {
+        // Working 08:00-12:00 and 12:00-16:00 is one stretch: with 60 minutes, 11:15, 11:30 and 11:45 fit.
+        var professional = Domain.Professionals.Professional.Create("Dr. Ines Rua", "Pediatrics").Value;
+        professional.SetWorkingHours(
+        [
+            Domain.ValueObjects.WeeklySlot.Create(DayOfWeek.Wednesday, new TimeOnly(8, 0), new TimeOnly(12, 0)).Value,
+            Domain.ValueObjects.WeeklySlot.Create(DayOfWeek.Wednesday, new TimeOnly(12, 0), new TimeOnly(16, 0)).Value,
+        ]);
+        _professionals.Items.Add(professional);
+
+        var starts = await StartsAsync(Wednesday, 60, professional.Id);
+
+        Assert.Contains(new TimeOnly(11, 15), starts);
+        Assert.Contains(new TimeOnly(11, 30), starts);
+        Assert.Contains(new TimeOnly(11, 45), starts);
+        Assert.Equal(Range(new TimeOnly(8, 0), new TimeOnly(15, 0)), starts);
+    }
+
+    [Fact]
     public async Task HandleAsync_InactiveProfessional_ReturnsEmptyList()
     {
         _professional.Deactivate();
