@@ -14,6 +14,7 @@ public class DependencyInjectionTests
         // A real host registers IConfiguration itself; the test host has to do it by hand.
         return new ServiceCollection()
             .AddSingleton(configuration)
+            .AddLogging()
             .AddInfrastructure(configuration)
             .BuildServiceProvider(validateScopes: true);
     }
@@ -33,6 +34,8 @@ public class DependencyInjectionTests
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IPatientRepository>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IProfessionalRepository>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IAppointmentRepository>());
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<IStaffUserRepository>());
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<IPasswordHasher>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IUnitOfWork>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<IClinicClock>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<DemoDataSeeder>());

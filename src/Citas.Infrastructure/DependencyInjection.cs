@@ -1,6 +1,7 @@
 using Citas.Application.Abstractions;
 using Citas.Infrastructure.Persistence;
 using Citas.Infrastructure.Repositories;
+using Citas.Infrastructure.Security;
 using Citas.Infrastructure.Seeding;
 using Citas.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ public static class DependencyInjection
     public const string DefaultTimeZoneId = "America/Bogota";
 
     /// <summary>
-    /// Registers the DbContext (connection string <c>ConnectionStrings:Citas</c>), the repositories, the unit of work,
+    /// Registers the DbContext (connection string <c>ConnectionStrings:Citas</c>), the repositories, the password hasher, the unit of work,
     /// the clinic clock (<c>Clinic:TimeZone</c>, default America/Bogota) and the demo data seeder.
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
@@ -36,6 +37,8 @@ public static class DependencyInjection
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IProfessionalRepository, ProfessionalRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<IStaffUserRepository, StaffUserRepository>();
+        services.AddSingleton<IPasswordHasher, IdentityPasswordHasher>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<DemoDataSeeder>();
 
