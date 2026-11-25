@@ -5,6 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace Citas.Api.Http;
 
+/// <summary>A date-time that is not local clinic time in the expected format. The message is safe to show to the caller.</summary>
+internal sealed class InvalidClinicDateTimeException(string message) : JsonException(message);
+
 /// <summary>
 /// The API speaks the clinic's local time. It reads and writes <c>yyyy-MM-ddTHH:mm[:ss]</c> and refuses any value that
 /// carries a zone (<c>Z</c> or an offset), because silently converting it would move the appointment to another hour.
@@ -24,7 +27,7 @@ internal sealed partial class ClinicDateTimeConverter : JsonConverter<DateTime>
     {
         if (reader.TokenType != JsonTokenType.String)
         {
-            throw new JsonException(FormatMessage);
+            throw new InvalidClinicDateTimeException(FormatMessage);
         }
 
         string text = reader.GetString() ?? string.Empty;
@@ -34,7 +37,7 @@ internal sealed partial class ClinicDateTimeConverter : JsonConverter<DateTime>
             return DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
         }
 
-        throw new JsonException(HasZone().IsMatch(text) ? OffsetMessage : FormatMessage);
+        throw new InvalidClinicDateTimeException(HasZone().IsMatch(text) ? OffsetMessage : FormatMessage);
     }
 
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options) =>
