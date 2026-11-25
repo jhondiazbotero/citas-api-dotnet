@@ -193,7 +193,7 @@ public class AppointmentFlowTests(PostgresFixture postgres) : ApiTestBase(postgr
             await AssertProblemAsync(byPatient, HttpStatusCode.UnprocessableEntity, "Appointment.CancellationTooLate");
         }
 
-        using var byClinic = await PostAsync($"{V1}/appointments/{appointmentId}/cancel", new { reason = "El médico está enfermo", byClinic = true });
+        using var byClinic = await PostAsync($"{V1}/appointments/{appointmentId}/cancel", new { reason = "El médico está enfermo", onBehalfOfPatient = false });
         Assert.Equal(HttpStatusCode.NoContent, byClinic.StatusCode);
     }
 }

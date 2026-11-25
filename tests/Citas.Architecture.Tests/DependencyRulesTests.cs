@@ -12,6 +12,8 @@ public class DependencyRulesTests
     private const string EntityFrameworkCore = "Microsoft.EntityFrameworkCore";
     private const string Npgsql = "Npgsql";
     private const string AspNetCore = "Microsoft.AspNetCore";
+    private const string IdentityModel = "Microsoft.IdentityModel";
+    private const string SystemIdentityModel = "System.IdentityModel";
 
     private static readonly Assembly DomainAssembly = Citas.Domain.AssemblyReference.Assembly;
     private static readonly Assembly ApplicationAssembly = Citas.Application.AssemblyReference.Assembly;
@@ -62,6 +64,21 @@ public class DependencyRulesTests
 
         Assert.True(result.IsSuccessful, Describe(result));
         AssertNoReferences(ApplicationAssembly, EntityFrameworkCore, AspNetCore);
+    }
+
+    [Fact]
+    public void Domain_and_Application_should_not_depend_on_AspNetCore_or_token_libraries()
+    {
+        foreach (Assembly assembly in new[] { DomainAssembly, ApplicationAssembly })
+        {
+            var result = Types.InAssembly(assembly)
+                .ShouldNot()
+                .HaveDependencyOnAny(AspNetCore, IdentityModel, SystemIdentityModel)
+                .GetResult();
+
+            Assert.True(result.IsSuccessful, Describe(result));
+            AssertNoReferences(assembly, IdentityModel, SystemIdentityModel, "Microsoft.AspNetCore.Authentication.JwtBearer", "Microsoft.Extensions.Identity.Core");
+        }
     }
 
     // Second safety net: checks assembly references, not just types.

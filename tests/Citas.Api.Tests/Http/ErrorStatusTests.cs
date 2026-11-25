@@ -13,6 +13,8 @@ public class ErrorStatusTests
         typeof(ProfessionalErrors),
         typeof(PatientErrors),
         typeof(TimeRangeErrors),
+        typeof(StaffUserErrors),
+        typeof(AuthErrors),
     ];
 
     // Every domain error, written down on purpose: adding an error to the domain makes the catalog test below fail
@@ -34,6 +36,16 @@ public class ErrorStatusTests
         ["Professional.InvalidSlot"] = 400,
         ["Appointment.ReasonTooLong"] = 400,
         ["Appointment.InvalidCancellationReason"] = 400,
+        ["StaffUser.InvalidEmail"] = 400,
+        ["StaffUser.InvalidRole"] = 400,
+        ["StaffUser.ProfessionalRequired"] = 400,
+        ["StaffUser.ProfessionalNotAllowed"] = 400,
+        ["StaffUser.InvalidPasswordHash"] = 400,
+
+        ["Auth.InvalidCredentials"] = 401,
+        ["Auth.Unauthorized"] = 401,
+        ["Auth.Forbidden"] = 403,
+        ["Auth.TooManyAttempts"] = 429,
 
         ["Patient.NotFound"] = 404,
         ["Professional.NotFound"] = 404,
@@ -43,6 +55,7 @@ public class ErrorStatusTests
         ["Appointment.PatientOverlap"] = 409,
         ["Patient.DuplicateDocument"] = 409,
         ["Appointment.ConcurrencyConflict"] = 409,
+        ["StaffUser.DuplicateEmail"] = 409,
 
         ["Appointment.InThePast"] = 422,
         ["Appointment.TooSoon"] = 422,
