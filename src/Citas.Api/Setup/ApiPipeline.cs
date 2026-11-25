@@ -14,11 +14,17 @@ internal static class ApiPipeline
     public const string DocsPath = "/docs";
 
     /// <summary>
-    /// Request log first (so it sees the final status), then the exception handler and the status pages that write problem details
+    /// Forwarded headers before anything else (when enabled), so the logs and the login limit see the client address.
+    /// Request log next (so it sees the final status), then the exception handler and the status pages that write problem details
     /// (also for the empty 401 and 403 answers of authentication), the rate limiter, and who-you-are before what-you-may-do.
     /// </summary>
     public static WebApplication UseApi(this WebApplication app)
     {
+        if (ForwardedHeadersSetup.IsEnabled(app.Configuration))
+        {
+            app.UseForwardedHeaders();
+        }
+
         app.UseSerilogRequestLogging(options => options.GetLevel = RequestLogLevel);
         app.UseExceptionHandler();
         app.UseStatusCodePages();

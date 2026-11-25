@@ -42,6 +42,7 @@ internal static class ApiServices
             })
             .AddOpenApi(options => options.AddCitasTransformers());
 
+        services.AddForwardedHeadersIfEnabled(configuration);
         services.AddCitasSecurity(configuration);
 
         services
