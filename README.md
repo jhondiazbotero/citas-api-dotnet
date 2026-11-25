@@ -193,7 +193,9 @@ Salida real recortada: ese día la profesional de demo tenía 25 horarios libres
 
 ### Detrás de un proxy
 
-El límite de intentos de inicio de sesión cuenta por dirección IP. Detrás de un proxy inverso la API tiene que leer la cabecera `X-Forwarded-For` (`ForwardedHeaders__Enabled=true`, que el Dockerfile y el compose ya activan). Por eso `docker-compose.yml` publica el puerto solo en `127.0.0.1`: expuesto directo a internet, cualquiera podría escribir esa cabecera y esquivar el límite. Más en el [ADR 0006](docs/adr/0006-jwt-sin-refresh-tokens-y-usuarios-del-personal.md).
+El límite de intentos de inicio de sesión cuenta por la dirección IP de la conexión. Por defecto la API **no** lee `X-Forwarded-For` (`ForwardedHeaders__Enabled=false`): sin un proxy delante, cualquiera podría escribir esa cabecera y cambiar de dirección en cada petición para esquivar el límite. Por eso ni el `Dockerfile` ni el `docker-compose.yml` la encienden.
+
+Se enciende solo cuando la API queda detrás de un proxy inverso que pone la cabecera, con `ForwardedHeaders__Enabled=true`. Sin esa variable, detrás de un proxy todos los clientes comparten una sola dirección (la del proxy) y también una sola cuota. Con ella, la API cree solo la última entrada de la cabecera, la que agrega el proxy más cercano, y la API no debe ser alcanzable sin pasar por él. Más en el [ADR 0006](docs/adr/0006-jwt-sin-refresh-tokens-y-usuarios-del-personal.md).
 
 ## Pruebas
 

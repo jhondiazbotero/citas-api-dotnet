@@ -21,7 +21,7 @@ Estos son los límites, y los dejo escritos porque importan:
 - No hay refresh tokens: cuando el token vence, la persona vuelve a iniciar sesión.
 - No hay revocación. Un token ya emitido sirve hasta que vence, aunque el usuario se desactive o cambie de rol. Se reduce con una vida corta, pero no desaparece.
 - El límite de intentos vive en la memoria de cada instancia. Con varias instancias, cada una cuenta por separado.
-- Detrás de un proxy inverso hay que activar `ForwardedHeaders:Enabled` para que el límite vea la dirección real del cliente. Por eso `docker-compose.yml` publica el puerto solo en `127.0.0.1`: si se expusiera directo, cualquiera podría escribir `X-Forwarded-For` y esquivar el límite.
+- `X-Forwarded-For` está apagada por defecto (`ForwardedHeaders:Enabled=false`) y ni el `Dockerfile` ni el `docker-compose.yml` la encienden. La razón: sin un proxy delante, cualquiera puede escribir esa cabecera y elegir su propia dirección, y el límite de intentos dejaría de servir. Con ella apagada, el límite cuenta por la IP real de la conexión. Se enciende solo cuando la API queda detrás de un proxy inverso que pone la cabecera; entonces la API cree únicamente la última entrada (la del proxy más cercano) y no debe ser alcanzable sin pasar por él. Si se olvida encenderla detrás de un proxy, todos los clientes comparten la cuota del proxy: falla hacia lo estricto, no hacia lo abierto.
 - Rotar la llave invalida todos los tokens vigentes.
 
 ## Alternativas descartadas

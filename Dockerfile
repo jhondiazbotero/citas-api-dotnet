@@ -24,10 +24,10 @@ WORKDIR /app
 COPY --from=publish /app/publish ./
 
 # Production by default. Secrets (ConnectionStrings__Citas, Jwt__SigningKey, Demo__UsersPassword) come from the environment at run time.
-# ForwardedHeaders is on because the container is meant to sit behind a reverse proxy (see the README before exposing it directly).
+# ForwardedHeaders__Enabled stays off (the default): X-Forwarded-For is only believable behind a proxy that writes it.
+# Whoever puts a reverse proxy in front sets it to true on purpose (see "Detrás de un proxy" in the README).
 ENV ASPNETCORE_ENVIRONMENT=Production \
-    ASPNETCORE_HTTP_PORTS=8080 \
-    ForwardedHeaders__Enabled=true
+    ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 
 # Not root: the base image ships a non-root user, $APP_UID.
