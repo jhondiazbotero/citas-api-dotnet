@@ -27,10 +27,10 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity);
 
         group.MapGet("/{id}", GetAsync)
-            .RequireAccess(Policies.AnyStaff)
+            .RequireAccess(Policies.OwnProfessional)
             .WithName(GetByIdRoute)
             .WithSummary("Get a professional")
-            .WithDescription("Returns one professional with the weekly working hours.")
+            .WithDescription("Returns one professional with the weekly working hours. A professional can only read their own record.")
             .Produces<ProfessionalResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
@@ -55,7 +55,7 @@ internal static class ProfessionalEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapGet("/{id}/agenda", GetAgendaAsync)
-            .RequireAccess(Policies.OwnAgenda)
+            .RequireAccess(Policies.OwnProfessional)
             .WithName("GetProfessionalAgenda")
             .WithSummary("Agenda of a professional")
             .WithDescription("Appointments that start between `from` and `to`, both days included, ordered by start. At most 31 days.")

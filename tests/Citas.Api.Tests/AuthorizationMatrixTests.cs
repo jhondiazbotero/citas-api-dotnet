@@ -19,7 +19,6 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
 
     private static readonly string[] AdminOnly = [Admin];
     private static readonly string[] FrontDesk = [Admin, Reception];
-    private static readonly string[] AnyStaff = [Admin, Reception, Own, Other];
     private static readonly string[] OwnOrFrontDesk = [Admin, Reception, Own];
     private static readonly string[] Everybody = [Anon, Admin, Reception, Own, Other];
     private static readonly string[] Actors = Everybody;
@@ -41,7 +40,7 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
     [
         new("POST professionals", HttpMethod.Post, _ => $"{V1}/professionals",
             _ => new { fullName = "Dr. Nuevo Prueba", specialty = "Pediatría", workingHours = Hours() }, HttpStatusCode.Created, AdminOnly),
-        new("GET professionals/{id}", HttpMethod.Get, i => $"{V1}/professionals/{i.Professional}", _ => null, HttpStatusCode.OK, AnyStaff),
+        new("GET professionals/{id}", HttpMethod.Get, i => $"{V1}/professionals/{i.Professional}", _ => null, HttpStatusCode.OK, OwnOrFrontDesk),
         new("PUT professionals/{id}/working-hours", HttpMethod.Put, i => $"{V1}/professionals/{i.Professional}/working-hours",
             _ => new { workingHours = Hours() }, HttpStatusCode.OK, AdminOnly),
         new("POST professionals/{id}/deactivate", HttpMethod.Post, i => $"{V1}/professionals/{i.Professional}/deactivate", _ => new { }, HttpStatusCode.NoContent, AdminOnly),
@@ -217,6 +216,22 @@ public class AuthorizationMatrixTests(PostgresFixture postgres) : ApiTestBase(po
         Assert.Equal(HttpStatusCode.OK, own.StatusCode);
         Assert.Equal(ids.Appointment, Assert.Single((await own.ReadAsync()).EnumerateArray()).GetProperty("id").GetGuid());
         await AssertProblemAsync(alien, HttpStatusCode.Forbidden, "Auth.Forbidden");
+    }
+
+    [Fact]
+    public async Task Professional_SeesTheirOwnRecordOnly()
+    {
+        Ids ids = await PrepareAsync(started: false);
+        using HttpClient owner = ClientAs(StaffRole.Professional, ids.Professional);
+
+        using var own = await owner.GetAsync($"{V1}/professionals/{ids.Professional}", Cancellation);
+        using var alien = await owner.GetAsync($"{V1}/professionals/{ids.OtherProfessional}", Cancellation);
+        using var missing = await owner.GetAsync($"{V1}/professionals/{Guid.NewGuid()}", Cancellation);
+
+        Assert.Equal(HttpStatusCode.OK, own.StatusCode);
+        Assert.Equal(ids.Professional, (await own.ReadAsync()).GetProperty("id").GetGuid());
+        await AssertProblemAsync(alien, HttpStatusCode.Forbidden, "Auth.Forbidden");
+        await AssertProblemAsync(missing, HttpStatusCode.Forbidden, "Auth.Forbidden");
     }
 
     [Fact]

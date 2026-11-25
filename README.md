@@ -107,7 +107,7 @@ Todos cuelgan de `/api/v1`. La documentación interactiva está en `/docs`. «Pe
 | POST | `/patients` | Admin o Reception |
 | GET | `/patients/{id}` | Admin o Reception |
 | POST | `/professionals` | Admin |
-| GET | `/professionals/{id}` | Personal |
+| GET | `/professionals/{id}` | Admin o Reception, o el mismo profesional |
 | PUT | `/professionals/{id}/working-hours` | Admin |
 | POST | `/professionals/{id}/deactivate` | Admin |
 | GET | `/professionals/{id}/agenda?from=&to=` | Admin o Reception, o el mismo profesional |

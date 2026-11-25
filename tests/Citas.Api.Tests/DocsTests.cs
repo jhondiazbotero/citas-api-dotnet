@@ -206,7 +206,8 @@ public class DocsSecurityTests(PostgresFixture postgres) : ApiTestBase(postgres)
         Assert.Contains("Public", access["get /api/v1/professionals/{id}/available-slots"], StringComparison.Ordinal);
         Assert.EndsWith("Admin.", access["post /api/v1/professionals"], StringComparison.Ordinal);
         Assert.EndsWith("Admin or Reception.", access["post /api/v1/patients"], StringComparison.Ordinal);
-        Assert.Contains("Professional whose agenda it is", access["get /api/v1/professionals/{id}/agenda"], StringComparison.Ordinal);
+        Assert.Contains("any other professional gets 403", access["get /api/v1/professionals/{id}/agenda"], StringComparison.Ordinal);
+        Assert.Contains("any other professional gets 403", access["get /api/v1/professionals/{id}"], StringComparison.Ordinal);
         Assert.Contains("Professional who owns the appointment", access["post /api/v1/appointments/{id}/complete"], StringComparison.Ordinal);
     }
 
