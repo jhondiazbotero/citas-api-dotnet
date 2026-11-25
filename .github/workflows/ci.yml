@@ -56,7 +56,7 @@ jobs:
           --collect:"XPlat Code Coverage"
           --settings coverage.runsettings
           --results-directory ./TestResults
-          --logger "trx;LogFileName=results.trx"
+          --logger "trx;LogFilePrefix=results"
 
       - name: Coverage report
         if: ${{ !cancelled() }}
