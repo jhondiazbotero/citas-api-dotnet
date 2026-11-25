@@ -1,0 +1,23 @@
+# Build output
+**/bin/
+**/obj/
+
+# Not needed to build the image
+.git/
+.github/
+tests/
+_qa-tmp/
+**/*.md
+docs/
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Local files that must never reach an image
+.env
+.env.*
+**/*.user
+**/.vs/
+**/.vscode/
+**/.idea/
+**/secrets.json
