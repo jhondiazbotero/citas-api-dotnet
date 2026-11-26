@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # The app stays on .NET 10 (LTS): major bumps (11.x packages, xUnit v4) need a planned upgrade, not a weekly PR.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       microsoft:
         patterns:
